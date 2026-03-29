@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkiVaro – Skandinavias Vannskimarked</title>
+<title>NordHavn – Skandinavias Vannskimarked</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 <style>
@@ -53,15 +53,11 @@ nav.scrolled { background:rgba(10,12,14,0.98)!important; border-bottom:1px solid
 .hero { position:relative; height:100vh; min-height:600px; display:flex; flex-direction:column; justify-content:flex-end; padding:0 3rem 5rem; overflow:hidden; }
 
 /* ── HERO MEDIA BAKGRUNN ── */
-.hero-media {
-  position:absolute; inset:0; z-index:0;
-  /* 🖼️ BAKGRUNNSBILDE — bytt url her: */
-  /* background-image: url('DIN_BILDE.jpg'); */
-  background-size:cover; background-position:center;
-  background:radial-gradient(ellipse at 60% 40%, #0a2a45 0%, #0a0c0e 70%);
-}
-.'/Users/tobias/Downloads/nettside vid.mp4' { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-*/
+<div class="hero-media">
+  <video class="hero-video" autoplay muted loop playsinline>
+    <source src="'/Users/tobias/Downloads/nettside vid.mp4'" type="video/mp4">
+  </video>
+</div>
 .hero-overlay { position:absolute; inset:0; z-index:2; background:linear-gradient(to top, rgba(10,12,14,1) 0%, rgba(10,12,14,0.45) 40%, rgba(10,12,14,0.2) 100%); }
 
 /* Bølgeanimasjon */
@@ -315,7 +311,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:3re
     <div class="hero-media">
       <!-- 🎬 VIDEO — fjern kommentar for å aktivere:
       <video class="hero-video" autoplay muted loop playsinline>
-        <source src="'/Users/tobias/Downloads/nettside vid.mp4'" type="video/mp4">
+        <source src="DIN_VIDEO.mp4" type="video/mp4">
       </video>
       -->
     </div>
@@ -466,7 +462,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:3re
   <!-- HVORFOR -->
   <section style="background:var(--dark);padding:5rem 3rem;border-top:1px solid var(--border);">
     <div style="max-width:1000px;margin:0 auto;">
-      <div class="section-label">Hvorfor SkiVaro</div>
+      <div class="section-label">Hvorfor NordHavn</div>
       <div class="section-title" style="margin-bottom:3rem;">Det <span>mangler</span> i Skandinavia</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2rem;">
         <div style="border-top:2px solid var(--accent);padding-top:1.5rem;"><div style="font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:.05em;margin-bottom:.5rem;">Kun vannskibåter</div><p style="color:var(--off);font-size:.82rem;line-height:1.6;">Vi fokuserer 100% på vannskisegmentet – ikke druknet i generalister</p></div>
@@ -504,6 +500,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:3re
         <option value="Centurion">Centurion</option>
         <option value="Supra">Supra</option>
         <option value="Tige">Tige</option>
+        <option value="Correct Craft">Correct Craft</option>
         <option value="Calabria">Calabria</option>
         <option value="HO Sports">HO Sports</option>
         <option value="Annet">Annet</option>
@@ -689,7 +686,7 @@ footer { background:var(--dark); border-top:1px solid var(--border); padding:3re
       <a onclick="requireAuth('sell')">Legg ut båt</a>
     </div>
   </div>
-  <div class="foot-bottom">© 2026 SkiVaro · Norge · Sverige · Danmark · Finland · Personvern · Vilkår</div>
+  <div class="foot-bottom">© 2026 NordHavn AS · Norge · Sverige · Danmark · Finland · Personvern · Vilkår</div>
 </footer>
 
 <script>
@@ -829,7 +826,7 @@ function renderFeatured() {
     grid.innerHTML = `<div class="empty-state">
       <div class="empty-icon">🚤</div>
       <div class="empty-title">Ingen annonser ennå</div>
-      <p class="empty-sub">Bli den første til å legge ut en vannskibåt på SkiVaro!</p>
+      <p class="empty-sub">Bli den første til å legge ut en vannskibåt på NordHavn!</p>
       <button class="btn-hero-p" onclick="requireAuth('sell')">+ Legg ut din båt</button>
     </div>`;
     cta.innerHTML = '';
