@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkiVaro – Skandinavias Vannskimarked</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged, updateProfile }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, push, set, get, onValue, query,
+         orderByChild, limitToLast, update, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCTvWHRHOC_r003D2r2xVuM9fwMXkkAu_A",
+  authDomain:        "skivaro-33c88.firebaseapp.com",
+  projectId:         "skivaro-33c88",
+  storageBucket:     "skivaro-33c88.firebasestorage.app",
+  messagingSenderId: "451591105327",
+  appId:             "1:451591105327:web:5571d7857578a8aafd4fda",
+  databaseURL:       "https://skivaro-33c88-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getDatabase(app);
+
+window._auth = auth;
+window._db   = db;
+window._fb   = { ref, push, set, get, onValue, query, orderByChild,
