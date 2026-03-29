@@ -935,44 +935,60 @@ async function sendMsg(convId) {
 
 // ── SUBMIT LISTING ──
 async function submitListing() {
-  if(!currentUser){openModal('login');return;}
-  const name=document.getElementById('f-name').value.trim();
-  const price=document.getElementById('f-price').value.trim();
-  const city=document.getElementById('f-city').value.trim();
-  if(!name||!price||!city){toast('⚠️ Fyll ut alle obligatoriske felt');return;}
-  const btn=document.getElementById('submit-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Publiserer...';
-  const flags={Norge:'🇳🇴',Sverige:'🇸🇪',Danmark:'🇩🇰',Finland:'🇫🇮'};
-  const country=document.getElementById('f-country-sell').value;
-  const prevs=document.querySelectorAll('#img-prev .img-preview');
-  try {
-    await window._firebase.addDoc(window._firebase.collection(window._db,'listings'),{
-      name, price:parseInt(price),
-      brand:document.getElementById('f-brand-sell').value,
-      cat:document.getElementById('f-cat-sell').value,
-      year:parseInt(document.getElementById('f-year').value)||new Date().getFullYear(),
-      length:document.getElementById('f-length').value||'',
-      hp:document.getElementById('f-hp').value||'',
-      hours:document.getElementById('f-hours').value||'',
-      condition:document.getElementById('f-cond-sell').value,
-      engine:document.getElementById('f-engine').value,
-      country, city, flag:flags[country]||'🏳️',
-      desc:document.getElementById('f-desc').value,
-      img:prevs.length>0?prevs[0].src:null,
-      sellerUid:currentUser.uid,
-      sellerName:currentUser.name,
-      sellerEmail:currentUser.email,
-      createdAt:window._firebase.serverTimestamp()
-    });
-    toast('✅ Annonsen er publisert i hele Skandinavia!');
-    ['f-name','f-year','f-length','f-price','f-engine','f-hours','f-hp','f-city','f-desc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-    document.getElementById('img-prev').innerHTML='';
-    setTimeout(()=>showPage('listings'),1500);
-  } catch(e) {
-    toast('❌ Feil ved publisering: '+e.message);
-  } finally {
-    btn.disabled=false; btn.textContent='🚤 Publiser annonse – Gratis';
-  }
+    if(!currentUser){openModal('login');return;}
+    const name=document.getElementById('f-name').value.trim();
+    const price=document.getElementById('f-price').value.trim();
+    const city=document.getElementById('f-city').value.trim();
+    if(!name||!price||!city){toast('⚠️ Fyll ut alle obligatoriske felt');return;}
+    
+    const btn=document.getElementById('submit-btn');
+    btn.disabled=true; 
+    btn.innerHTML='<span class="spinner"></span>Publiserer...';
+    
+    const flags={Norge:'🇳🇴',Sverige:'🇸🇪',Danmark:'🇩🇰',Finland:'🇫🇮'};
+    const country=document.getElementById('f-country-sell').value;
+    const prevs=document.querySelectorAll('#img-prev .img-preview');
+    
+    try {
+        const listingDoc = await window._firebase.addDoc(
+            window._firebase.collection(window._db,'listings'),
+            {
+                name, price:parseInt(price),
+                brand:document.getElementById('f-brand-sell').value,
+                cat:document.getElementById('f-cat-sell').value,
+                year:parseInt(document.getElementById('f-year').value)||new Date().getFullYear(),
+                length:document.getElementById('f-length').value||'',
+                hp:document.getElementById('f-hp').value||'',
+                hours:document.getElementById('f-hours').value||'',
+                condition:document.getElementById('f-cond-sell').value,
+                engine:document.getElementById('f-engine').value,
+                country, city, flag:flags[country]||'🏳️',
+                desc:document.getElementById('f-desc').value,
+                img:prevs.length>0?prevs[0].src:null,
+                sellerUid:currentUser.uid,
+                sellerName:currentUser.name,
+                sellerEmail:currentUser.email,
+                createdAt:window._firebase.serverTimestamp()
+            }
+        );
+        
+        // Only show success if we actually got a document ID
+        if(listingDoc.id) {
+            toast('✅ Annonsen er publisert i hele Skandinavia!');
+            ['f-name','f-year','f-length','f-price','f-engine','f-hours','f-hp','f-city','f-desc'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el)el.value=''
+            });
+            document.getElementById('img-prev').innerHTML='';
+            setTimeout(()=>showPage('listings'),1500);
+        }
+    } catch(e) {
+        console.error('Firebase error:', e);
+        toast('❌ Feil: ' + e.message);
+    } finally {
+        btn.disabled=false; 
+        btn.textContent='🚤 Publiser annonse – Gratis';
+    }
 }
 
 function previewImgs(e) {
