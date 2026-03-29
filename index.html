@@ -13,7 +13,7 @@ import { initializeApp }      from 'https://www.gstatic.com/firebasejs/10.12.0/f
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
          signOut, onAuthStateChanged, updateProfile }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getDatabase, ref, push, set, get, onValue, query,
+import { getDatabase, ref, push, set, get, onValue, off, query,
          orderByChild, limitToLast, update, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
@@ -33,7 +33,7 @@ const db   = getDatabase(app);
 
 window._auth = auth;
 window._db   = db;
-window._fb   = { ref, push, set, get, onValue, query, orderByChild,
+window._fb   = { ref, push, set, get, onValue, off, query, orderByChild,
                   limitToLast, update, serverTimestamp,
                   createUserWithEmailAndPassword, signInWithEmailAndPassword,
                   signOut, onAuthStateChanged, updateProfile };
@@ -344,7 +344,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
       ════════════════════════════════════════════════════════
       -->
       <video class="hero-video" autoplay muted loop playsinline>
-       <source src="https://res.cloudinary.com/dmykmhrn2/video/upload/v1774812486/nettside_vid_ypm2ly.mp4" type="video/mp4">
+        <source src="https://res.cloudinary.com/dmykmhrn2/video/upload/v1774812486/nettside_vid_ypm2ly.mp4" type="video/mp4">
       </video>
     </div>
     <div class="hero-overlay"></div>
@@ -925,14 +925,23 @@ function openConv(convId) {
       <button class="chat-send" onclick="sendMsg('${convId}')">↑</button>
     </div>`;
 
-  // Avregistrer gammel lytter — viktig! Uten dette stacker lyttere seg opp
-  // og bare første melding vises fordi de krasjer med hverandre
-  if (window._activeMsgUnsub) { window._activeMsgUnsub(); window._activeMsgUnsub = null; }
+  // Avregistrer gammel lytter med off() — riktig måte for Realtime Database
+  if (window._activeMsgRef) {
+    window._fb.off(window._activeMsgRef);
+    window._activeMsgRef = null;
+  }
 
   const msgRef = window._fb.ref(window._db, 'messages/' + convId);
-  window._activeMsgUnsub = window._fb.onValue(msgRef, snap => {
+  window._activeMsgRef = msgRef;  // lagre ref så vi kan kalle off() på den senere
+
+  window._fb.onValue(msgRef, snap => {
     const msgEl = document.getElementById('chat-msgs');
-    if (!msgEl) return;
+    if (!msgEl) {
+      // Chat-panel er borte, avregistrer lytteren
+      window._fb.off(msgRef);
+      window._activeMsgRef = null;
+      return;
+    }
     const msgs = [];
     if (snap.exists()) snap.forEach(c => msgs.push(c.val()));
     msgs.sort((a,b) => (a.ts||0) - (b.ts||0));
