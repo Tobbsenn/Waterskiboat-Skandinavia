@@ -6,48 +6,6 @@
 <title>SkiVaro – Skandinavias Vannskimarked</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         signOut, onAuthStateChanged, updateProfile,
-         sendPasswordResetEmail, sendEmailVerification }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getDatabase, ref, push, set, get, onValue, off, query,
-         orderByChild, limitToLast, update, remove, serverTimestamp }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyCTvWHRHOC_r003D2r2xVuM9fwMXkkAu_A",
-  authDomain:        "skivaro-33c88.firebaseapp.com",
-  projectId:         "skivaro-33c88",
-  storageBucket:     "skivaro-33c88.firebasestorage.app",
-  messagingSenderId: "451591105327",
-  appId:             "1:451591105327:web:5571d7857578a8aafd4fda",
-  databaseURL:       "https://skivaro-33c88-default-rtdb.europe-west1.firebasedatabase.app"
-};
-
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getDatabase(app);
-
-window._auth = auth;
-window._db   = db;
-window._fb   = { ref, push, set, get, onValue, off, query, orderByChild,
-                  limitToLast, update, remove, serverTimestamp,
-                  createUserWithEmailAndPassword, signInWithEmailAndPassword,
-                  signOut, onAuthStateChanged, updateProfile,
-                  sendPasswordResetEmail, sendEmailVerification };
-
-onAuthStateChanged(auth, user => {
-  window.currentUser = user
-    ? { uid: user.uid, name: user.displayName || user.email.split('@')[0],
-         email: user.email, emailVerified: user.emailVerified }
-    : null;
-  if (typeof window.onAuthReady === 'function') window.onAuthReady(window.currentUser);
-});
-</script>
-
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -364,10 +322,28 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
 </head>
 <body>
 
+<!-- LOADER — hides itself after 3.5s max, no Firebase dependency -->
 <div id="page-loader">
   <div class="loader-logo">Ski<span>Varo</span></div>
   <div class="loader-bar"><div class="loader-fill"></div></div>
 </div>
+<script>
+(function(){
+  var deadline = Date.now() + 3500;
+  function check(){
+    var l = document.getElementById('page-loader');
+    if(!l) return;
+    if(window._fbReady || Date.now() >= deadline){
+      l.style.transition='opacity 0.4s';
+      l.style.opacity='0';
+      setTimeout(function(){if(l.parentNode)l.parentNode.removeChild(l);},400);
+    } else {
+      setTimeout(check, 80);
+    }
+  }
+  setTimeout(check, 200);
+})();
+</script>
 
 <!-- EMAIL VERIFICATION BANNER -->
 <div id="verify-banner" class="verify-banner" style="display:none">
@@ -392,7 +368,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </div>
 </nav>
 
-<!-- ════ HOME ════ -->
+<!-- HOME -->
 <div id="page-home" class="page active">
   <section class="hero">
     <div class="hero-media">
@@ -419,14 +395,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
     <div class="scroll-hint"><span>↓</span> Scroll</div>
   </section>
 
-  <!--
-  ════════════════════════════════════════════════════
-  🖼️ BILDERAD — bytt src på hver img med ditt bilde
-  Eks: <img src="mitt_bilde.jpg" alt="Wake">
-  Bildet MÅ ligge i samme mappe som index.html på GitHub
-  Eller bruk en nettadresse: <img src="https://..." alt="">
-  ════════════════════════════════════════════════════
-  -->
+  <!-- BILDERAD: bytt src på hver img med ditt eget bilde -->
   <div class="media-stripe">
     <div class="media-slot" onclick="filterByCat('Wakeboard/Surf')">
       <img src="data:image/jpeg;base64,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" alt="Wake og Surf"><!-- 🖼️ BILDE 1 -->
@@ -478,7 +447,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </section>
 </div>
 
-<!-- ════ LISTINGS ════ -->
+<!-- LISTINGS -->
 <div id="page-listings" class="page">
   <div style="padding:6rem 3rem 2rem;background:var(--dark);border-bottom:1px solid var(--border)">
     <div class="section-label">Alle annonser</div>
@@ -496,13 +465,13 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </div>
 </div>
 
-<!-- ════ DETAIL ════ -->
+<!-- DETAIL -->
 <div id="page-detail" class="page">
   <span class="back-btn" id="back-btn">← Tilbake</span>
   <div id="detail-content"></div>
 </div>
 
-<!-- ════ SELL ════ -->
+<!-- SELL -->
 <div id="page-sell" class="page">
   <div class="sell-header">
     <div class="section-label">Selg din båt</div>
@@ -519,8 +488,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
     </div>
   </div>
   <div id="sell-form" class="sell-wrap" style="display:none">
-    <div class="sell-sec">
-      <h2>📋 Grunnleggende info</h2>
+    <div class="sell-sec"><h2>📋 Grunnleggende info</h2>
       <div class="f"><label>Båtnavn / Modell *</label><input type="text" id="f-name" placeholder="f.eks. Super Air Nautique G23"></div>
       <div class="sg2">
         <div class="f"><label>Kategori *</label><select id="f-cat-sell"><option value="Boats-3Event">Boats · 3 Event</option><option value="Wakeboard/Surf">Wakeboard / Surf</option><option value="Outboard">Boats · Outboard</option><option value="Show Ski">Boat · Show Ski</option></select></div>
@@ -540,19 +508,16 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
         <div class="f"><label>Hestekrefter</label><input type="number" id="f-hp" placeholder="450"></div>
       </div>
     </div>
-    <div class="sell-sec">
-      <h2>📍 Beliggenhet</h2>
+    <div class="sell-sec"><h2>📍 Beliggenhet</h2>
       <div class="sg2">
         <div class="f"><label>Land *</label><select id="f-country-sell"><option>Norge</option><option>Sverige</option><option>Danmark</option><option>Finland</option></select></div>
         <div class="f"><label>By / Sted *</label><input type="text" id="f-city" placeholder="f.eks. Hamar, Oslo, Bergen"></div>
       </div>
     </div>
-    <div class="sell-sec">
-      <h2>📝 Beskrivelse</h2>
+    <div class="sell-sec"><h2>📝 Beskrivelse</h2>
       <div class="f"><label>Beskrivelse *</label><textarea id="f-desc" placeholder="Beskriv båtens tilstand, utstyr, historikk..."></textarea></div>
     </div>
-    <div class="sell-sec">
-      <h2>📷 Bilder (opptil 5)</h2>
+    <div class="sell-sec"><h2>📷 Bilder (opptil 5)</h2>
       <div class="upload-zone" onclick="document.getElementById('img-input').click()">
         <div style="font-size:1.8rem;margin-bottom:.4rem">📷</div>
         <p style="color:var(--white);font-weight:600;margin-bottom:.2rem">Klikk for å laste opp bilder</p>
@@ -566,14 +531,11 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </div>
 </div>
 
-<!-- ════ MESSAGES ════ -->
+<!-- MESSAGES -->
 <div id="page-messages" class="page">
   <div class="msg-page">
     <div class="conv-list">
-      <div class="conv-list-header">
-        <h2>Meldinger</h2>
-        <span class="unread-badge" id="unread-badge" style="display:none">0</span>
-      </div>
+      <div class="conv-list-header"><h2>Meldinger</h2><span class="unread-badge" id="unread-badge" style="display:none">0</span></div>
       <div class="conv-items" id="conv-items"><div class="conv-empty-msg">Ingen samtaler ennå</div></div>
     </div>
     <div class="chat-panel" id="chat-panel">
@@ -582,14 +544,13 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </div>
 </div>
 
-<!-- ════ NEWS ════ -->
+<!-- NEWS -->
 <div id="page-news" class="page">
   <div class="news-page">
     <div class="news-header">
       <div class="section-label">Siste nytt</div>
       <div class="section-title">Nyheter &amp; <span>oppdateringer</span></div>
     </div>
-    <!-- Admin-panel — vises kun for godkjente redaktører -->
     <div id="news-admin-panel" style="display:none">
       <div class="news-admin">
         <h3>➕ Publiser nyhet</h3>
@@ -611,17 +572,14 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </div>
 </div>
 
-<!-- ════ CONTACT ════ -->
+<!-- CONTACT -->
 <div id="page-contact" class="page">
   <div class="contact-page">
     <div class="contact-card-wrap">
       <h1>Kontakt oss</h1>
-      <p>Har du spørsmål, tilbakemeldinger eller trenger hjelp? Fyll ut skjemaet under så svarer vi deg så fort som mulig.</p>
-      <div class="contact-detail"><strong>E-post</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8ae1e5e4feebe1fecaf9e1e3fcebf8e5a4e4e5">[email&#160;protected]</a></div>
-      <div class="contact-detail"><strong>Responstid</strong> Innen 1–2 virkedager</div>
-      <div style="height:1.5rem"></div>
+      <p>Har du spørsmål eller trenger hjelp? Vi svarer deg innen 1–2 virkedager.</p>
       <div class="f"><label>Ditt navn</label><input type="text" id="ct-name" placeholder="Ola Nordmann"></div>
-      <div class="f"><label>E-post</label><input type="email" id="ct-email" placeholder="din@epost.no"></div>
+      <div class="f"><label>Din e-post</label><input type="email" id="ct-email" placeholder="din epost"></div>
       <div class="f"><label>Emne</label><select id="ct-subject"><option>Generelt spørsmål</option><option>Problem med annonce</option><option>Rapporter bruker</option><option>Teknisk problem</option><option>Annet</option></select></div>
       <div class="f"><label>Melding</label><textarea id="ct-msg" placeholder="Beskriv hva det gjelder..." style="min-height:120px"></textarea></div>
       <button class="btn-contact-submit" onclick="sendContact()">Send melding</button>
@@ -629,7 +587,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   </div>
 </div>
 
-<!-- ════ AUTH MODAL ════ -->
+<!-- AUTH MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModalOnBg(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
@@ -637,70 +595,56 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
       <button class="modal-tab active" id="tab-login" onclick="switchTab('login')">Logg inn</button>
       <button class="modal-tab" id="tab-register" onclick="switchTab('register')">Registrer deg</button>
     </div>
-
-    <!-- LOGIN -->
     <div id="form-login">
       <h2>Velkommen tilbake</h2>
       <div class="modal-err" id="login-err"></div>
-      <div class="mf"><label>E-post</label><input type="email" id="l-email" placeholder="din@epost.no"></div>
+      <div class="mf"><label>E-post</label><input type="email" id="l-email" placeholder="din epost"></div>
       <div class="mf"><label>Passord</label><input type="password" id="l-pass" placeholder="••••••••"></div>
-      <span class="forgot-link" onclick="doResetPassword()">Glemt passordet?</span>
+      <span class="forgot-link" onclick="switchTab('reset')">Glemt passordet?</span>
       <button class="btn-modal" id="login-btn" onclick="doLogin()">Logg inn</button>
       <div class="modal-note">Ikke bruker? <span onclick="switchTab('register')">Registrer deg gratis →</span></div>
     </div>
-
-    <!-- REGISTER -->
     <div id="form-register" style="display:none">
       <h2>Kom i gang</h2>
       <div class="modal-err" id="reg-err"></div>
       <div class="mf"><label>Fullt navn</label><input type="text" id="r-name" placeholder="Ola Nordmann"></div>
-      <div class="mf"><label>E-post</label><input type="email" id="r-email" placeholder="din@epost.no"></div>
+      <div class="mf"><label>E-post</label><input type="email" id="r-email" placeholder="din epost"></div>
       <div class="mf"><label>Passord (minst 8 tegn)</label><input type="password" id="r-pass" placeholder="••••••••"></div>
       <div class="mf"><label>Land</label>
         <select id="r-country" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.65rem .88rem;border-radius:3px;font-size:.88rem;appearance:none">
           <option>Norge</option><option>Sverige</option><option>Danmark</option><option>Finland</option>
         </select>
       </div>
-      <!-- TERMS -->
       <div style="margin-bottom:.8rem">
-        <div class="terms-scroll">
-<h4>1. Aksept av vilkår</h4>
+        <div class="terms-scroll"><h4>1. Aksept av vilkår</h4>
 <p>Ved å registrere deg på SkiVaro godtar du disse vilkårene. SkiVaro er en markedsplass for kjøp og salg av vannskibåter i Skandinavia.</p>
 <h4>2. Brukerkontoer</h4>
-<p>Du er ansvarlig for å holde passordet ditt hemmelig. Du må oppgi korrekt informasjon ved registrering. Falsk informasjon kan føre til sletting av konto.</p>
+<p>Du er ansvarlig for å holde passordet ditt hemmelig. Du må oppgi korrekt informasjon ved registrering.</p>
 <h4>3. Annonser</h4>
-<p>Selgere er ansvarlige for at informasjonen i annonsen er korrekt. SkiVaro er ikke ansvarlig for feil i annonsene eller transaksjoner mellom kjøper og selger.</p>
+<p>Selgere er ansvarlige for at informasjonen er korrekt. SkiVaro er ikke ansvarlig for feil i annonsene.</p>
 <h4>4. Meldinger</h4>
-<p>Meldingssystemet er kun for kommunikasjon om kjøp/salg. Spam, trusler eller upassende innhold er forbudt og kan føre til utestengelse.</p>
+<p>Meldingssystemet er kun for kommunikasjon om kjøp og salg. Spam er forbudt.</p>
 <h4>5. Personvern</h4>
-<p>Vi lagrer e-post, navn og annonsedata i Firebase (Google). Data deles ikke med tredjeparter. Du kan slette kontoen din ved å kontakte oss.</p>
-<h4>6. Ansvarsfraskrivelse</h4>
-<p>SkiVaro garanterer ikke salg og er ikke ansvarlig for tap ved transaksjoner mellom brukere. Kjøper og selger avtaler selv pris og levering.</p>
-<h4>7. Kontakt</h4>
-<p>Spørsmål om vilkårene kan sendes til <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="0d666263796c66794d7e66647b6c7f62236362">[email&#160;protected]</a></p>
-</div>
-        <label class="checkbox-row">
-          <input type="checkbox" id="terms-check">
-          Jeg godtar <span onclick="event.preventDefault();document.getElementById('terms-check').closest('.modal').querySelector('.terms-scroll').scrollIntoView({behavior:'smooth'})">vilkårene og personvernerklæringen</span>
-        </label>
+<p>Vi lagrer e-post, navn og annonsedata i Firebase. Data deles ikke med tredjeparter.</p>
+<h4>6. Kontakt</h4>
+<p>Spørsmål sendes via kontaktskjemaet på nettsiden.</p></div>
+        <label class="checkbox-row"><input type="checkbox" id="terms-check"> Jeg godtar vilkårene og personvernerklæringen</label>
       </div>
       <button class="btn-modal" id="reg-btn" onclick="doRegister()">Opprett gratis bruker</button>
       <div class="modal-note">Har du bruker? <span onclick="switchTab('login')">Logg inn →</span></div>
     </div>
-
-    <!-- RESET PASSWORD -->
     <div id="form-reset" style="display:none">
       <h2>Tilbakestill passord</h2>
       <p style="color:var(--off);font-size:.85rem;margin-bottom:1rem">Vi sender deg en e-post med lenke for å lage nytt passord.</p>
       <div class="modal-err" id="reset-err"></div>
-      <div class="mf"><label>E-post</label><input type="email" id="reset-email" placeholder="din@epost.no"></div>
+      <div class="mf"><label>E-post</label><input type="email" id="reset-email" placeholder="din epost"></div>
       <button class="btn-modal" onclick="sendReset()">Send tilbakestillingslenke</button>
       <div class="modal-note" style="margin-top:.8rem"><span onclick="switchTab('login')">← Tilbake til innlogging</span></div>
     </div>
   </div>
 </div>
 
-<!-- ════ EDIT LISTING MODAL ════ -->
+<!-- EDIT LISTING MODAL -->
 <div class="modal-overlay" id="edit-overlay" onclick="if(event.target.id==='edit-overlay')closeEditModal()">
   <div class="edit-modal">
     <button class="modal-close" onclick="closeEditModal()">✕</button>
@@ -735,34 +679,32 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
     <div class="foot-col"><h4>Konto</h4><a onclick="openModal('login')">Logg inn</a><a onclick="openModal('register')">Registrer deg</a></div>
   </div>
   <div class="foot-bottom" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-    <span>© 2026 SkiVaro AS · Norge · Sverige · Danmark · Finland · <span style="cursor:pointer;text-decoration:underline" onclick="showPage('contact')">Personvern</span> · <span style="cursor:pointer;text-decoration:underline" onclick="switchTab('register');openModal('register')">Vilkår</span></span>
+    <span>© 2026 SkiVaro AS · Norge · Sverige · Danmark · Finland</span>
     <button class="footer-contact-btn" onclick="showPage('contact')">📬 Kontakt oss</button>
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-// ══════════════════════════════════════════════════
-// ADMIN UIDs — legg til Firebase UID-en din her for
-// å få tilgang til å publisere nyheter
-// Finn din UID i Firebase Console → Authentication → Users
-// ══════════════════════════════════════════════════
+<script>
+// ═══════════════════════════════════════════════
+// ADMIN — legg inn din Firebase UID her
+// Firebase Console → Authentication → Users → klikk din bruker → kopier UID
 const ADMIN_UIDS = [
-  // "LIMIN_DIN_UID_HER"   ← fjern // og lim inn din UID
+  // "LIMIN_UID_HER"
 ];
+// ═══════════════════════════════════════════════
 
-// ── STATE ──
 let currentUser  = null;
 let listings     = [];
 let convs        = [];
 let activeConvId = null;
 let lastPage     = 'home';
 let pendingPage  = null;
+let _newsImgData = null;
 
+// Called by Firebase module when auth state is known
 window.onAuthReady = function(user) {
   currentUser = user;
   updateNav();
-  hideLoader();
-  listenListings();
   if (user) {
     listenConvs();
     checkVerification();
@@ -770,313 +712,216 @@ window.onAuthReady = function(user) {
   }
 };
 
-function hideLoader() {
-  const l = document.getElementById('page-loader');
-  if (!l) return;
-  l.style.opacity='0';
-  l.style.transition='opacity .5s';
-  setTimeout(()=>{ if(l.parentNode) l.remove(); }, 500);
-}
-
-// Hard timeout — if Firebase never responds within 6s, force show the page anyway
-setTimeout(() => {
-  const l = document.getElementById('page-loader');
-  if (l) {
-    console.warn('Firebase did not respond in time — showing page anyway');
-    l.remove();
-    listenListings(); // try to load listings without auth
-  }
-}, 6000);
-
 function checkVerification() {
-  const banner = document.getElementById('verify-banner');
-  if (currentUser && !currentUser.emailVerified) {
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
+  const b = document.getElementById('verify-banner');
+  if (b) b.style.display = (currentUser && !currentUser.emailVerified) ? 'flex' : 'none';
 }
 
 async function resendVerification() {
-  if (!window._auth.currentUser) return;
   try {
     await window._fb.sendEmailVerification(window._auth.currentUser);
-    toast('✅ Bekreftelsesmail sendt til ' + currentUser.email);
-  } catch(e) { toast('Feil: ' + e.message); }
+    toast('✅ Bekreftelsesmail sendt!');
+  } catch(e) { toast('Feil: '+e.message); }
 }
 
-// ── HELPERS ──
 function fmtPrice(p) { return 'kr ' + parseInt(p).toLocaleString('no-NO'); }
 function isAdmin() { return currentUser && ADMIN_UIDS.includes(currentUser.uid); }
 
 // ── AUTH ──
 async function doLogin() {
-  const email = document.getElementById('l-email').value.trim();
-  const pass  = document.getElementById('l-pass').value;
-  const err   = document.getElementById('login-err');
-  const btn   = document.getElementById('login-btn');
-  err.style.display = 'none';
-  if (!email || !pass) { showErr(err,'Fyll ut e-post og passord'); return; }
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Logger inn...';
+  const email=document.getElementById('l-email').value.trim();
+  const pass=document.getElementById('l-pass').value;
+  const err=document.getElementById('login-err');
+  const btn=document.getElementById('login-btn');
+  err.style.display='none';
+  if(!email||!pass){showErr(err,'Fyll ut e-post og passord');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Logger inn...';
   try {
-    await window._fb.signInWithEmailAndPassword(window._auth, email, pass);
+    await window._fb.signInWithEmailAndPassword(window._auth,email,pass);
     closeModal();
   } catch(e) {
-    showErr(err, (e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found')
-      ? 'Feil e-post eller passord' : 'Feil: '+e.message);
-  } finally { btn.disabled=false; btn.textContent='Logg inn'; }
+    showErr(err,(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found')
+      ?'Feil e-post eller passord':'Feil: '+e.message);
+  } finally{btn.disabled=false;btn.textContent='Logg inn';}
 }
 
 async function doRegister() {
-  const name  = document.getElementById('r-name').value.trim();
-  const email = document.getElementById('r-email').value.trim();
-  const pass  = document.getElementById('r-pass').value;
-  const terms = document.getElementById('terms-check').checked;
-  const err   = document.getElementById('reg-err');
-  const btn   = document.getElementById('reg-btn');
-  err.style.display = 'none';
-  if (!name||!email||!pass) { showErr(err,'Fyll ut alle felt'); return; }
-  if (pass.length < 8) { showErr(err,'Passord må være minst 8 tegn'); return; }
-  if (!terms) { showErr(err,'Du må godta vilkårene for å registrere deg'); return; }
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Oppretter...';
+  const name=document.getElementById('r-name').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const pass=document.getElementById('r-pass').value;
+  const terms=document.getElementById('terms-check').checked;
+  const err=document.getElementById('reg-err');
+  const btn=document.getElementById('reg-btn');
+  err.style.display='none';
+  if(!name||!email||!pass){showErr(err,'Fyll ut alle felt');return;}
+  if(pass.length<8){showErr(err,'Passord må være minst 8 tegn');return;}
+  if(!terms){showErr(err,'Du må godta vilkårene');return;}
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Oppretter...';
   try {
-    const cred = await window._fb.createUserWithEmailAndPassword(window._auth, email, pass);
-    await window._fb.updateProfile(cred.user, { displayName: name });
-    await window._fb.set(window._fb.ref(window._db,'users/'+cred.user.uid), {
-      name, email, country: document.getElementById('r-country').value, createdAt: Date.now()
-    });
-    // Send e-postbekreftelse automatisk
+    const cred=await window._fb.createUserWithEmailAndPassword(window._auth,email,pass);
+    await window._fb.updateProfile(cred.user,{displayName:name});
+    await window._fb.set(window._fb.ref(window._db,'users/'+cred.user.uid),{name,email,country:document.getElementById('r-country').value,createdAt:Date.now()});
     await window._fb.sendEmailVerification(cred.user);
     closeModal();
-    toast('✅ Velkommen '+name+'! Sjekk e-posten din for å bekrefte kontoen 📧');
+    toast('✅ Velkommen '+name+'! Sjekk e-posten din 📧');
   } catch(e) {
-    showErr(err, e.code==='auth/email-already-in-use' ? 'E-posten er allerede i bruk' : 'Feil: '+e.message);
-  } finally { btn.disabled=false; btn.textContent='Opprett gratis bruker'; }
-}
-
-function doResetPassword() {
-  switchTab('reset');
+    showErr(err,e.code==='auth/email-already-in-use'?'E-posten er allerede i bruk':'Feil: '+e.message);
+  } finally{btn.disabled=false;btn.textContent='Opprett gratis bruker';}
 }
 
 async function sendReset() {
-  const email = document.getElementById('reset-email').value.trim();
-  const err   = document.getElementById('reset-err');
+  const email=document.getElementById('reset-email').value.trim();
+  const err=document.getElementById('reset-err');
   err.style.display='none';
-  if (!email) { showErr(err,'Skriv inn e-posten din'); return; }
+  if(!email){showErr(err,'Skriv inn e-posten din');return;}
   try {
-    await window._fb.sendPasswordResetEmail(window._auth, email);
-    toast('✅ Tilbakestillingslenke sendt til ' + email);
+    await window._fb.sendPasswordResetEmail(window._auth,email);
+    toast('✅ Tilbakestillingslenke sendt til '+email);
     switchTab('login');
-  } catch(e) {
-    showErr(err, e.code==='auth/user-not-found' ? 'Ingen bruker med den e-posten' : 'Feil: '+e.message);
-  }
+  } catch(e){showErr(err,e.code==='auth/user-not-found'?'Ingen bruker med den e-posten':'Feil: '+e.message);}
 }
 
 async function doLogout() {
-  if (window._activeMsgRef) {
-    window._fb.off(window._activeMsgRef, window._activeMsgHandler || undefined);
-    window._activeMsgRef=null; window._activeMsgHandler=null;
-  }
+  if(window._activeMsgRef){window._fb.off(window._activeMsgRef,window._activeMsgHandler||undefined);window._activeMsgRef=null;window._activeMsgHandler=null;}
   await window._fb.signOut(window._auth);
-  currentUser=null; convs=[]; updateNav(); showPage('home'); toast('Du er logget ut');
+  currentUser=null;convs=[];updateNav();showPage('home');toast('Du er logget ut');
 }
 
-function showErr(el,msg) { el.textContent=msg; el.style.display='block'; }
+function showErr(el,msg){el.textContent=msg;el.style.display='block';}
 
 function updateNav() {
-  const nr = document.getElementById('nav-right');
-  if (currentUser) {
-    const unread = convs.filter(c=>c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead).length;
-    const badge  = unread>0 ? `<span class="msg-badge">${unread}</span>` : '';
-    nr.innerHTML = `
-      <button class="msg-btn" onclick="requireAuth('messages')">💬 Meldinger${badge}</button>
+  const nr=document.getElementById('nav-right');
+  if(currentUser){
+    const unread=convs.filter(c=>c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead).length;
+    const badge=unread>0?`<span class="msg-badge">${unread}</span>`:'';
+    nr.innerHTML=`<button class="msg-btn" onclick="requireAuth('messages')">💬 Meldinger${badge}</button>
       <div class="user-pill"><div class="user-dot"></div>${currentUser.name}</div>
       <button class="btn-ghost" onclick="doLogout()">Logg ut</button>`;
-  } else {
-    nr.innerHTML = `<button class="btn-ghost" onclick="openModal('login')">Logg inn</button>
-                    <button class="btn-solid" onclick="openModal('register')">Registrer deg</button>`;
+  }else{
+    nr.innerHTML=`<button class="btn-ghost" onclick="openModal('login')">Logg inn</button>
+      <button class="btn-solid" onclick="openModal('register')">Registrer deg</button>`;
   }
 }
 
-// ── REALTIME LISTENERS ──
+// ── FIREBASE LISTENERS ──
 function listenListings() {
-  const r = window._fb.ref(window._db,'listings');
-  window._fb.onValue(r, snap => {
-    listings = [];
-    if (snap.exists()) snap.forEach(c => listings.unshift({id:c.key,...c.val()}));
-    renderFeatured();
-    updateStatCount();
-    if (document.getElementById('page-listings').classList.contains('active')) filterBoats();
+  if(!window._fb||!window._db)return;
+  window._fb.onValue(window._fb.ref(window._db,'listings'),snap=>{
+    listings=[];
+    if(snap.exists())snap.forEach(c=>listings.unshift({id:c.key,...c.val()}));
+    renderFeatured();updateStatCount();
+    if(document.getElementById('page-listings').classList.contains('active'))filterBoats();
   });
 }
 
 function listenConvs() {
-  if (!currentUser) return;
-  const r = window._fb.ref(window._db,'userConvs/'+currentUser.uid);
-  window._fb.onValue(r, async snap => {
-    if (!snap.exists()) { convs=[]; updateNav(); return; }
-    const ids = Object.keys(snap.val());
-    const all = await Promise.all(ids.map(id=>window._fb.get(window._fb.ref(window._db,'conversations/'+id)).then(s=>s.exists()?{id:s.key,...s.val()}:null)));
-    convs = all.filter(Boolean).sort((a,b)=>(b.lastTs||0)-(a.lastTs||0));
+  if(!currentUser||!window._fb||!window._db)return;
+  window._fb.onValue(window._fb.ref(window._db,'userConvs/'+currentUser.uid),async snap=>{
+    if(!snap.exists()){convs=[];updateNav();return;}
+    const ids=Object.keys(snap.val());
+    const all=await Promise.all(ids.map(id=>window._fb.get(window._fb.ref(window._db,'conversations/'+id)).then(s=>s.exists()?{id:s.key,...s.val()}:null)));
+    convs=all.filter(Boolean).sort((a,b)=>(b.lastTs||0)-(a.lastTs||0));
     updateNav();
-    if (document.getElementById('page-messages').classList.contains('active')) renderConvs();
+    if(document.getElementById('page-messages').classList.contains('active'))renderConvs();
   });
 }
 
 // ── ROUTING ──
-function showPage(name) {
+function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+name).classList.add('active');
   window.scrollTo(0,0);
-  if (name!=='detail') lastPage=name;
-  if (name==='home')     { renderFeatured(); updateStatCount(); }
-  if (name==='listings') filterBoats();
-  if (name==='sell') {
-    document.getElementById('sell-locked').style.display=currentUser?'none':'block';
-    document.getElementById('sell-form').style.display=currentUser?'block':'none';
-  }
-  if (name==='messages') renderConvs();
-  if (name==='news')     loadNews();
+  if(name!=='detail')lastPage=name;
+  if(name==='home'){renderFeatured();updateStatCount();}
+  if(name==='listings')filterBoats();
+  if(name==='sell'){document.getElementById('sell-locked').style.display=currentUser?'none':'block';document.getElementById('sell-form').style.display=currentUser?'block':'none';}
+  if(name==='messages')renderConvs();
+  if(name==='news')loadNews();
 }
-function requireAuth(page) {
-  if (currentUser) showPage(page);
-  else { pendingPage=page; openModal('login'); }
-}
-function updateStatCount() {
-  const el=document.getElementById('stat-count');
-  if (el) el.textContent=listings.length;
-}
+function requireAuth(page){if(currentUser)showPage(page);else{pendingPage=page;openModal('login');}}
+function updateStatCount(){const el=document.getElementById('stat-count');if(el)el.textContent=listings.length;}
 
 // ── SLIDESHOW ──
-const slideshowTimers = {};
-function startSlideshow(wrapId, imgs) {
-  if (imgs.length <= 1) return;
-  let idx = 0;
-  const wrap = document.getElementById(wrapId);
-  if (!wrap) return;
-  clearInterval(slideshowTimers[wrapId]);
-  slideshowTimers[wrapId] = setInterval(() => {
-    const allImgs = wrap.querySelectorAll('img');
-    const allDots = wrap.querySelectorAll('.slide-dot');
-    allImgs.forEach(i=>i.classList.remove('active'));
-    allDots.forEach(d=>d.classList.remove('active'));
-    idx = (idx+1) % imgs.length;
-    if (allImgs[idx]) allImgs[idx].classList.add('active');
-    if (allDots[idx]) allDots[idx].classList.add('active');
-  }, 2500);
+const _slideshowTimers={};
+function startSlideshow(wrapId,imgs){
+  if(imgs.length<=1)return;
+  let idx=0;
+  clearInterval(_slideshowTimers[wrapId]);
+  _slideshowTimers[wrapId]=setInterval(()=>{
+    const wrap=document.getElementById(wrapId);if(!wrap){clearInterval(_slideshowTimers[wrapId]);return;}
+    wrap.querySelectorAll('img').forEach(i=>i.classList.remove('active'));
+    wrap.querySelectorAll('.slide-dot').forEach(d=>d.classList.remove('active'));
+    idx=(idx+1)%imgs.length;
+    const imgs2=wrap.querySelectorAll('img');const dots=wrap.querySelectorAll('.slide-dot');
+    if(imgs2[idx])imgs2[idx].classList.add('active');
+    if(dots[idx])dots[idx].classList.add('active');
+  },2500);
 }
 
 // ── CARDS ──
-function renderCard(b) {
-  const imgs = b.imgs || (b.img ? [b.img] : []);
-  const sid  = 'slide-' + b.id;
+function renderCard(b){
+  const imgs=b.imgs||(b.img?[b.img]:[]);
+  const sid='slide-'+b.id;
   let imgHtml;
-  if (imgs.length === 0) {
-    imgHtml = `<div class="card-placeholder">🚤</div>`;
-  } else if (imgs.length === 1) {
-    imgHtml = `<img src="${imgs[0]}" alt="${b.name}" style="width:100%;height:100%;object-fit:cover">`;
-  } else {
-    const imgTags  = imgs.map((src,i)=>`<img src="${src}" alt="${b.name}" class="${i===0?'active':''}">`).join('');
-    const dotTags  = imgs.map((_,i)=>`<div class="slide-dot ${i===0?'active':''}"></div>`).join('');
-    imgHtml = `<div class="slide-wrap" id="${sid}">${imgTags}<div class="slide-dots">${dotTags}</div></div>`;
+  if(!imgs.length){imgHtml=`<div class="card-placeholder">🚤</div>`;}
+  else if(imgs.length===1){imgHtml=`<img src="${imgs[0]}" alt="${b.name}" style="width:100%;height:100%;object-fit:cover">`;}
+  else{
+    imgHtml=`<div class="slide-wrap" id="${sid}">${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'active':''}">`).join('')}<div class="slide-dots">${imgs.map((_,i)=>`<div class="slide-dot ${i===0?'active':''}"></div>`).join('')}</div></div>`;
   }
   return `<div class="boat-card" onclick="showDetail('${b.id}')">
     <div class="card-img">${imgHtml}<div class="card-cat-tag">${b.cat}</div><div class="card-country">${b.flag}</div></div>
     <div class="card-body">
-      <div class="card-brand">${b.brand}</div>
-      <div class="card-name">${b.name}</div>
+      <div class="card-brand">${b.brand}</div><div class="card-name">${b.name}</div>
       <div class="card-location">📍 ${b.city}, ${b.country}</div>
       <div class="card-price">${fmtPrice(b.price)}</div>
-      <div class="card-specs">
-        <span>📅 ${b.year}</span>
-        ${b.length?`<span>📏 ${b.length} fot</span>`:''}
-        ${b.hp?`<span>⚡ ${b.hp} hk</span>`:''}
-        ${b.hours?`<span>⏱ ${b.hours} t</span>`:''}
-        <span>${b.condition}</span>
-      </div>
-    </div>
-  </div>`;
+      <div class="card-specs"><span>📅 ${b.year}</span>${b.length?`<span>📏 ${b.length} fot</span>`:''}${b.hp?`<span>⚡ ${b.hp} hk</span>`:''}${b.hours?`<span>⏱ ${b.hours} t</span>`:''}${b.condition?`<span>${b.condition}</span>`:''}</div>
+    </div></div>`;
 }
 
-function afterRender(bs) {
-  bs.forEach(b => {
-    const imgs = b.imgs || (b.img ? [b.img] : []);
-    if (imgs.length > 1) startSlideshow('slide-'+b.id, imgs);
-  });
-}
+function afterRender(bs){bs.forEach(b=>{const imgs=b.imgs||(b.img?[b.img]:[]);if(imgs.length>1)startSlideshow('slide-'+b.id,imgs);});}
 
-function renderFeatured() {
-  const g=document.getElementById('featured-grid');
-  const c=document.getElementById('feat-cta');
-  if (!g) return;
-  if (!listings.length) {
+function renderFeatured(){
+  const g=document.getElementById('featured-grid');const c=document.getElementById('feat-cta');if(!g)return;
+  if(!listings.length){
     g.innerHTML=`<div class="empty-state"><div class="empty-icon">🚤</div><div class="empty-title">Ingen annonser ennå</div><p class="empty-sub">Bli den første!</p><button class="btn-hp" onclick="requireAuth('sell')">+ Legg ut din båt</button></div>`;
-    if (c) c.innerHTML='';
-  } else {
-    const show=listings.slice(0,6);
-    g.innerHTML=show.map(renderCard).join('');
-    afterRender(show);
-    if (c) c.innerHTML=listings.length>6?`<button class="btn-hg" onclick="showPage('listings')">Se alle ${listings.length} annonser →</button>`:'';
+    if(c)c.innerHTML='';
+  }else{
+    const show=listings.slice(0,6);g.innerHTML=show.map(renderCard).join('');afterRender(show);
+    if(c)c.innerHTML=listings.length>6?`<button class="btn-hg" onclick="showPage('listings')">Se alle ${listings.length} annonser →</button>`:'';
   }
 }
 
-// ── FILTER ──
-function filterBoats() {
-  const cat=document.getElementById('f-cat').value;
-  const brand=document.getElementById('f-brand').value;
-  const country=document.getElementById('f-country').value;
-  const cond=document.getElementById('f-cond').value;
+function filterBoats(){
+  const cat=document.getElementById('f-cat').value;const brand=document.getElementById('f-brand').value;
+  const country=document.getElementById('f-country').value;const cond=document.getElementById('f-cond').value;
   const filtered=listings.filter(b=>{
-    if(cat&&b.cat!==cat)return false;
-    if(brand&&b.brand!==brand)return false;
-    if(country&&b.country!==country)return false;
-    if(cond&&b.condition!==cond)return false;
-    return true;
+    if(cat&&b.cat!==cat)return false;if(brand&&b.brand!==brand)return false;
+    if(country&&b.country!==country)return false;if(cond&&b.condition!==cond)return false;return true;
   });
   document.getElementById('result-count').textContent=filtered.length+' annonse'+(filtered.length!==1?'r':'');
   const g=document.getElementById('all-grid');
-  if (!filtered.length) {
-    g.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Ingen treff</div><p class="empty-sub">Prøv å endre filtrene</p></div>`;
-  } else {
-    g.innerHTML=filtered.map(renderCard).join('');
-    afterRender(filtered);
-  }
+  g.innerHTML=filtered.length?filtered.map(renderCard).join(''):`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Ingen treff</div><p class="empty-sub">Prøv å endre filtrene</p></div>`;
+  if(filtered.length)afterRender(filtered);
 }
-function filterByCat(cat) { showPage('listings'); document.getElementById('f-cat').value=cat; document.querySelectorAll('.cat-card').forEach(c=>c.classList.toggle('active',c.dataset.cat===cat)); filterBoats(); }
-function filterByBrand(brand) { showPage('listings'); document.getElementById('f-brand').value=brand; filterBoats(); }
+function filterByCat(cat){showPage('listings');document.getElementById('f-cat').value=cat;document.querySelectorAll('.cat-card').forEach(c=>c.classList.toggle('active',c.dataset.cat===cat));filterBoats();}
+function filterByBrand(brand){showPage('listings');document.getElementById('f-brand').value=brand;filterBoats();}
 
-// ── DETAIL ──
-function showDetail(id) {
-  const b=listings.find(x=>x.id===id);
-  if(!b) return;
+function showDetail(id){
+  const b=listings.find(x=>x.id===id);if(!b)return;
   const imgs=b.imgs||(b.img?[b.img]:[]);
-
   let imgSection='';
-  if(imgs.length===0) {
-    imgSection='';
-  } else if(imgs.length===1) {
-    imgSection=`<img src="${imgs[0]}" alt="${b.name}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`;
-  } else {
-    const sid='detail-slide';
-    const imgTags=imgs.map((src,i)=>`<img src="${src}" alt="${b.name}" class="${i===0?'active':''}">`).join('');
-    const dotTags=imgs.map((_,i)=>`<div class="slide-dot ${i===0?'active':''}"></div>`).join('');
-    imgSection=`<div class="slide-wrap" id="${sid}" style="position:absolute;inset:0;height:100%">${imgTags}<div class="slide-dots">${dotTags}</div></div>`;
+  if(imgs.length===1){imgSection=`<img src="${imgs[0]}" alt="${b.name}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">`;}
+  else if(imgs.length>1){
+    imgSection=`<div class="slide-wrap" id="detail-slide" style="position:absolute;inset:0;height:100%">
+      ${imgs.map((s,i)=>`<img src="${s}" class="${i===0?'active':''}">`).join('')}
+      <div class="slide-dots">${imgs.map((_,i)=>`<div class="slide-dot ${i===0?'active':''}"></div>`).join('')}</div></div>`;
   }
-
   let contact;
-  if(!currentUser) {
-    contact=`<div class="lock-msg"><div class="lock-icon">🔒</div><p>Logg inn for å kontakte selger.</p><button class="btn-lock" onclick="openModal('login')">Logg inn</button><button class="btn-ghost" style="width:100%;padding:.65rem;margin-top:.5rem" onclick="openModal('register')">Registrer deg gratis</button></div>`;
-  } else if(currentUser.uid===b.sellerUid) {
-    contact=`<div style="padding:1rem;background:var(--dark3);border-radius:4px;border:1px solid var(--border);text-align:center;color:var(--off);font-size:.85rem;margin-bottom:.8rem">Dette er din annonse</div>
-    <div class="listing-actions">
-      <button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Rediger</button>
-      <button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Slett annonse</button>
-    </div>`;
-  } else {
-    contact=`<div class="c-field"><label>Din melding</label><textarea id="contact-msg">Hei! Er ${b.name} (${b.year}) fortsatt tilgjengelig?</textarea></div>
-    <button class="btn-contact" onclick="startConv('${b.id}')">💬 Send melding til selger</button>`;
-  }
-
+  if(!currentUser){contact=`<div class="lock-msg"><div class="lock-icon">🔒</div><p>Logg inn for å kontakte selger.</p><button class="btn-lock" onclick="openModal('login')">Logg inn</button><button class="btn-ghost" style="width:100%;padding:.65rem;margin-top:.5rem" onclick="openModal('register')">Registrer deg gratis</button></div>`;}
+  else if(currentUser.uid===b.sellerUid){contact=`<div style="padding:1rem;background:var(--dark3);border-radius:4px;border:1px solid var(--border);text-align:center;color:var(--off);font-size:.85rem;margin-bottom:.8rem">Dette er din annonse</div>
+    <div class="listing-actions"><button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Rediger</button><button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Slett</button></div>`;}
+  else{contact=`<div class="c-field"><label>Din melding</label><textarea id="contact-msg">Hei! Er ${b.name} (${b.year}) fortsatt tilgjengelig?</textarea></div>
+    <button class="btn-contact" onclick="startConv('${b.id}')">💬 Send melding til selger</button>`;}
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-hero">${imgSection}<div class="detail-hero-overlay"></div>
       <div class="detail-hero-content"><div class="detail-brand">${b.brand} · ${b.cat} · ${b.flag} ${b.country}</div><div class="detail-title">${b.name}</div></div>
@@ -1096,117 +941,80 @@ function showDetail(id) {
       </div>
       <div><div class="contact-card"><h3>Kontakt selger</h3><div class="contact-price">${fmtPrice(b.price)}</div>${contact}</div></div>
     </div>`;
-
-  // Start slideshow i detail-siden
-  if(imgs.length>1) setTimeout(()=>startSlideshow('detail-slide',imgs),100);
-
+  if(imgs.length>1)setTimeout(()=>startSlideshow('detail-slide',imgs),100);
   document.getElementById('back-btn').onclick=()=>showPage(lastPage);
   showPage('detail');
 }
 
-// ── EDIT / DELETE ──
-function openEdit(id) {
-  const b=listings.find(x=>x.id===id);
-  if(!b) return;
+function openEdit(id){
+  const b=listings.find(x=>x.id===id);if(!b)return;
   document.getElementById('edit-id').value=id;
-  document.getElementById('edit-name').value=b.name||'';
-  document.getElementById('edit-price').value=b.price||'';
-  document.getElementById('edit-cond').value=b.condition||'God stand';
-  document.getElementById('edit-city').value=b.city||'';
-  document.getElementById('edit-country').value=b.country||'Norge';
-  document.getElementById('edit-engine').value=b.engine||'';
-  document.getElementById('edit-hours').value=b.hours||'';
-  document.getElementById('edit-hp').value=b.hp||'';
+  document.getElementById('edit-name').value=b.name||'';document.getElementById('edit-price').value=b.price||'';
+  document.getElementById('edit-cond').value=b.condition||'God stand';document.getElementById('edit-city').value=b.city||'';
+  document.getElementById('edit-country').value=b.country||'Norge';document.getElementById('edit-engine').value=b.engine||'';
+  document.getElementById('edit-hours').value=b.hours||'';document.getElementById('edit-hp').value=b.hp||'';
   document.getElementById('edit-desc').value=b.desc||'';
   document.getElementById('edit-overlay').classList.add('open');
 }
-function closeEditModal() { document.getElementById('edit-overlay').classList.remove('open'); }
-
-async function saveEdit() {
-  const id=document.getElementById('edit-id').value;
-  if(!id||!currentUser) return;
+function closeEditModal(){document.getElementById('edit-overlay').classList.remove('open');}
+async function saveEdit(){
+  const id=document.getElementById('edit-id').value;if(!id||!currentUser)return;
   const flags={Norge:'🇳🇴',Sverige:'🇸🇪',Danmark:'🇩🇰',Finland:'🇫🇮'};
   const country=document.getElementById('edit-country').value;
-  try {
+  try{
     await window._fb.update(window._fb.ref(window._db,'listings/'+id),{
-      name:document.getElementById('edit-name').value,
-      price:parseInt(document.getElementById('edit-price').value)||0,
-      condition:document.getElementById('edit-cond').value,
-      city:document.getElementById('edit-city').value,
-      country, flag:flags[country]||'🏳️',
-      engine:document.getElementById('edit-engine').value,
-      hours:document.getElementById('edit-hours').value,
-      hp:document.getElementById('edit-hp').value,
-      desc:document.getElementById('edit-desc').value,
-      updatedAt:Date.now()
+      name:document.getElementById('edit-name').value,price:parseInt(document.getElementById('edit-price').value)||0,
+      condition:document.getElementById('edit-cond').value,city:document.getElementById('edit-city').value,
+      country,flag:flags[country]||'🏳️',engine:document.getElementById('edit-engine').value,
+      hours:document.getElementById('edit-hours').value,hp:document.getElementById('edit-hp').value,
+      desc:document.getElementById('edit-desc').value,updatedAt:Date.now()
     });
-    closeEditModal();
-    toast('✅ Annonsen er oppdatert!');
-    showPage('listings');
-  } catch(e) { toast('Feil: '+e.message); }
+    closeEditModal();toast('✅ Annonsen er oppdatert!');showPage('listings');
+  }catch(e){toast('Feil: '+e.message);}
+}
+async function deleteListing(id){
+  if(!currentUser)return;
+  if(!confirm('Er du sikker? Dette kan ikke angres.'))return;
+  try{await window._fb.remove(window._fb.ref(window._db,'listings/'+id));toast('🗑️ Annonsen er slettet');showPage('listings');}
+  catch(e){toast('Feil: '+e.message);}
 }
 
-async function deleteListing(id) {
-  if(!currentUser) return;
-  if(!confirm('Er du sikker på at du vil slette denne annonsen? Dette kan ikke angres.')) return;
-  try {
-    await window._fb.remove(window._fb.ref(window._db,'listings/'+id));
-    toast('🗑️ Annonsen er slettet');
-    showPage('listings');
-  } catch(e) { toast('Feil: '+e.message); }
-}
-
-// ── SUBMIT LISTING ──
-async function submitListing() {
-  if(!currentUser) { openModal('login'); return; }
+async function submitListing(){
+  if(!currentUser){openModal('login');return;}
   const name=document.getElementById('f-name').value.trim();
   const price=document.getElementById('f-price').value.trim();
   const city=document.getElementById('f-city').value.trim();
-  if(!name||!price||!city) { toast('⚠️ Fyll ut båtnavn, pris og sted'); return; }
+  if(!name||!price||!city){toast('⚠️ Fyll ut båtnavn, pris og sted');return;}
   const btn=document.getElementById('submit-btn');
-  btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Publiserer...';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Publiserer...';
   const flags={Norge:'🇳🇴',Sverige:'🇸🇪',Danmark:'🇩🇰',Finland:'🇫🇮'};
   const country=document.getElementById('f-country-sell').value;
-  // Hent alle opplastede bilder
   const prevs=document.querySelectorAll('#img-prev .img-preview');
   const imgs=Array.from(prevs).map(i=>i.src).slice(0,5);
-  try {
+  try{
     const newRef=window._fb.push(window._fb.ref(window._db,'listings'));
     await window._fb.set(newRef,{
-      name, price:parseInt(price),
-      brand:document.getElementById('f-brand-sell').value,
+      name,price:parseInt(price),brand:document.getElementById('f-brand-sell').value,
       cat:document.getElementById('f-cat-sell').value,
       year:parseInt(document.getElementById('f-year').value)||new Date().getFullYear(),
-      length:document.getElementById('f-length').value||'',
-      hp:document.getElementById('f-hp').value||'',
-      hours:document.getElementById('f-hours').value||'',
-      condition:document.getElementById('f-cond-sell').value,
-      engine:document.getElementById('f-engine').value||'',
-      country, city, flag:flags[country]||'🏳️',
-      desc:document.getElementById('f-desc').value||'',
-      img:imgs[0]||null,      // bakoverkompatibelt
-      imgs:imgs,              // alle bilder
-      sellerUid:currentUser.uid,
-      sellerName:currentUser.name,
-      sellerEmail:currentUser.email,
-      createdAt:Date.now()
+      length:document.getElementById('f-length').value||'',hp:document.getElementById('f-hp').value||'',
+      hours:document.getElementById('f-hours').value||'',condition:document.getElementById('f-cond-sell').value,
+      engine:document.getElementById('f-engine').value||'',country,city,flag:flags[country]||'🏳️',
+      desc:document.getElementById('f-desc').value||'',img:imgs[0]||null,imgs,
+      sellerUid:currentUser.uid,sellerName:currentUser.name,sellerEmail:currentUser.email,createdAt:Date.now()
     });
     toast('✅ Annonsen er publisert i hele Skandinavia!');
     ['f-name','f-year','f-length','f-price','f-engine','f-hours','f-hp','f-city','f-desc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
     document.getElementById('img-prev').innerHTML='';
     setTimeout(()=>showPage('listings'),1500);
-  } catch(e) {
-    toast('❌ Feil: '+e.message); console.error(e);
-  } finally {
-    btn.disabled=false; btn.textContent='🚤 Publiser annonse – Gratis';
-  }
+  }catch(e){toast('❌ Feil: '+e.message);console.error(e);}
+  finally{btn.disabled=false;btn.textContent='🚤 Publiser annonse – Gratis';}
 }
 
-function previewImgs(e) {
-  const c=document.getElementById('img-prev'); c.innerHTML='';
-  const files=Array.from(e.target.files).slice(0,5);
-  files.forEach(f=>{
-    if(f.size>5*1024*1024) { toast('Bilde for stort – maks 5MB'); return; }
+function previewImgs(e){
+  const c=document.getElementById('img-prev');c.innerHTML='';
+  Array.from(e.target.files).slice(0,5).forEach(f=>{
+    if(f.size>5*1024*1024){toast('Bilde for stort – maks 5MB');return;}
     const r=new FileReader();
     r.onload=ev=>{const i=document.createElement('img');i.src=ev.target.result;i.className='img-preview';c.appendChild(i);};
     r.readAsDataURL(f);
@@ -1214,50 +1022,44 @@ function previewImgs(e) {
 }
 
 // ── CONVERSATIONS ──
-async function startConv(boatId) {
-  if(!currentUser) { openModal('login'); return; }
+async function startConv(boatId){
+  if(!currentUser){openModal('login');return;}
   const boat=listings.find(b=>b.id===boatId);
-  if(!boat||currentUser.uid===boat.sellerUid) return;
+  if(!boat||currentUser.uid===boat.sellerUid)return;
   const txt=document.getElementById('contact-msg')?.value.trim();
-  if(!txt) { toast('Skriv en melding først'); return; }
-  const {ref,push,set,get,update}=window._fb;
-  const db=window._db;
+  if(!txt){toast('Skriv en melding først');return;}
+  const {ref,push,set,get,update}=window._fb;const db=window._db;
   const existSnap=await get(ref(db,'userConvs/'+currentUser.uid));
   let convId=null;
-  if(existSnap.exists()) {
-    for(const cid of Object.keys(existSnap.val())) {
+  if(existSnap.exists()){
+    for(const cid of Object.keys(existSnap.val())){
       const cs=await get(ref(db,'conversations/'+cid));
-      if(cs.exists()&&cs.val().boatId===boatId) { convId=cid; break; }
+      if(cs.exists()&&cs.val().boatId===boatId){convId=cid;break;}
     }
   }
-  if(!convId) {
-    const newRef=push(ref(db,'conversations'));
-    convId=newRef.key;
-    await set(newRef,{
-      boatId,boatName:boat.name,boatPrice:boat.price,boatImg:boat.img||null,
+  if(!convId){
+    const newRef=push(ref(db,'conversations'));convId=newRef.key;
+    await set(newRef,{boatId,boatName:boat.name,boatPrice:boat.price,boatImg:boat.img||null,
       buyerUid:currentUser.uid,buyerName:currentUser.name,
       sellerUid:boat.sellerUid,sellerName:boat.sellerName,
-      lastMsg:'',lastTs:Date.now(),lastSender:currentUser.uid,lastRead:false
-    });
+      lastMsg:'',lastTs:Date.now(),lastSender:currentUser.uid,lastRead:false});
     await set(ref(db,'userConvs/'+currentUser.uid+'/'+convId),true);
     await set(ref(db,'userConvs/'+boat.sellerUid+'/'+convId),true);
   }
   const msgRef=push(ref(db,'messages/'+convId));
   await set(msgRef,{from:currentUser.uid,fromName:currentUser.name,text:txt,ts:Date.now()});
   await update(ref(db,'conversations/'+convId),{lastMsg:txt,lastTs:Date.now(),lastSender:currentUser.uid,lastRead:false});
-  activeConvId=convId;
-  toast('✅ Melding sendt!');
-  showPage('messages');
+  activeConvId=convId;toast('✅ Melding sendt!');showPage('messages');
 }
 
-function renderConvs() {
-  if(!currentUser) return;
+function renderConvs(){
+  if(!currentUser)return;
   const el=document.getElementById('conv-items');
   const badge=document.getElementById('unread-badge');
   const unread=convs.filter(c=>c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead).length;
   if(unread>0){badge.textContent=unread;badge.style.display='flex';}else{badge.style.display='none';}
   if(!convs.length){el.innerHTML='<div class="conv-empty-msg">💬<br><br>Ingen samtaler ennå</div>';renderChatEmpty();return;}
-  el.innerHTML=convs.map(c=>{
+  el.innerHTML=convs.map((c,idx)=>{
     const other=c.buyerUid===currentUser.uid?c.sellerName:c.buyerName;
     const isUnread=c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead;
     return `<div class="conv-item ${c.id===activeConvId?'active':''}" onclick="openConv('${c.id}')">
@@ -1273,31 +1075,28 @@ function renderConvs() {
       </div>
     </div>`;
   }).join('');
-  if(activeConvId) openConv(activeConvId); else renderChatEmpty();
+  if(activeConvId)openConv(activeConvId);else renderChatEmpty();
 }
 
-function renderChatEmpty() {
+function renderChatEmpty(){
   document.getElementById('chat-panel').innerHTML=`<div class="chat-empty-state"><div style="font-size:2.5rem;margin-bottom:.8rem">💬</div><p>Velg en samtale</p></div>`;
 }
 
-function openConv(convId) {
+function openConv(convId){
   activeConvId=convId;
-  const conv=convs.find(c=>c.id===convId);
-  if(!conv) return;
+  const conv=convs.find(c=>c.id===convId);if(!conv)return;
 
-  // Avregistrer gammel meldingslytter
-  if(window._activeMsgRef) {
-    window._fb.off(window._activeMsgRef, window._activeMsgHandler || undefined);
-    window._activeMsgRef = null;
-    window._activeMsgHandler = null;
+  // Tear down previous listener cleanly
+  if(window._activeMsgRef){
+    window._fb.off(window._activeMsgRef,window._activeMsgHandler||undefined);
+    window._activeMsgRef=null;window._activeMsgHandler=null;
   }
 
   const other=conv.buyerUid===currentUser.uid?conv.sellerName:conv.buyerName;
   const thumb=conv.boatImg?`<img src="${conv.boatImg}" alt="båt">`:'🚤';
-
-  // Merk som lest
   window._fb.update(window._fb.ref(window._db,'conversations/'+convId),{lastRead:true});
 
+  // Build chat UI
   document.getElementById('chat-panel').innerHTML=`
     <div class="chat-header">
       <div class="chat-boat-ref" onclick="showDetail('${conv.boatId}')">
@@ -1314,54 +1113,45 @@ function openConv(convId) {
       <button class="chat-send" onclick="sendMsg('${convId}')">↑</button>
     </div>`;
 
-  // Use requestAnimationFrame to guarantee DOM is painted before attaching listener
-  const msgRef = window._fb.ref(window._db, 'messages/' + convId);
-  window._activeMsgRef = msgRef;
+  // Attach Firebase listener AFTER two animation frames (guarantees DOM paint)
+  const msgRef=window._fb.ref(window._db,'messages/'+convId);
+  window._activeMsgRef=msgRef;
 
-  function renderMsgs(snap) {
-    // Always re-query the element — it may have been replaced
-    const msgEl = document.getElementById('chat-msgs');
-    if (!msgEl) {
-      window._fb.off(msgRef, renderMsgs);
-      window._activeMsgRef = null;
-      window._activeMsgHandler = null;
+  function renderMsgs(snap){
+    const msgEl=document.getElementById('chat-msgs');
+    if(!msgEl){
+      window._fb.off(msgRef,renderMsgs);
+      window._activeMsgRef=null;window._activeMsgHandler=null;
       return;
     }
-    const msgs = [];
-    if (snap.exists()) snap.forEach(c => msgs.push(c.val()));
-    msgs.sort((a,b) => (a.ts||0) - (b.ts||0));
-    // Always render, even empty (clear old content)
-    msgEl.innerHTML = msgs.length
-      ? msgs.map(m => {
-          const mine = m.from === currentUser.uid;
-          const t = new Date(m.ts).toLocaleTimeString('no',{hour:'2-digit',minute:'2-digit'});
+    const msgs=[];
+    if(snap.exists())snap.forEach(c=>msgs.push(c.val()));
+    msgs.sort((a,b)=>(a.ts||0)-(b.ts||0));
+    msgEl.innerHTML=msgs.length
+      ?msgs.map(m=>{
+          const mine=m.from===currentUser.uid;
+          const t=new Date(m.ts).toLocaleTimeString('no',{hour:'2-digit',minute:'2-digit'});
           return `<div class="msg-row ${mine?'mine':'theirs'}"><div class="bubble">${m.text}</div><div class="bubble-time">${t}</div></div>`;
         }).join('')
-      : '<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
-    msgEl.scrollTop = msgEl.scrollHeight;
+      :'<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
+    msgEl.scrollTop=msgEl.scrollHeight;
   }
 
-  // requestAnimationFrame guarantees the browser has finished painting innerHTML
-  // before we attach the Firebase listener (which fires synchronously on first call)
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      window._fb.onValue(msgRef, renderMsgs);
-      window._activeMsgHandler = renderMsgs;
-    });
-  });
+  window._activeMsgHandler=renderMsgs;
 
-  // Oppdater conv-liste markering
+  // Double rAF ensures browser has fully painted the new innerHTML
+  requestAnimationFrame(()=>requestAnimationFrame(()=>window._fb.onValue(msgRef,renderMsgs)));
+
+  // Update active state in conv list
   document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));
-  const items=[...document.querySelectorAll('.conv-item')];
-  const myConvs=convs.filter(c=>c.participants||true);
   const idx=convs.findIndex(c=>c.id===convId);
-  if(items[idx]) items[idx].classList.add('active');
+  const items=document.querySelectorAll('.conv-item');
+  if(items[idx])items[idx].classList.add('active');
 }
 
-async function sendMsg(convId) {
+async function sendMsg(convId){
   const input=document.getElementById('chat-input');
-  const txt=input?.value.trim();
-  if(!txt||!currentUser) return;
+  const txt=input?.value.trim();if(!txt||!currentUser)return;
   input.value='';
   const {ref,push,set,update}=window._fb;
   const msgRef=push(ref(window._db,'messages/'+convId));
@@ -1370,23 +1160,17 @@ async function sendMsg(convId) {
 }
 
 // ── NEWS ──
-function loadNews() {
+function loadNews(){
   const list=document.getElementById('news-list');
   const adminPanel=document.getElementById('news-admin-panel');
-  // Show admin panel only if user is in ADMIN_UIDS list
-  if(adminPanel) adminPanel.style.display=isAdmin()?'block':'none';
-
-  if(window._newsUnsub) { window._fb.off(window._newsRef); }
-  window._newsRef = window._fb.ref(window._db,'news');
-
-  window._fb.onValue(window._newsRef, snap=>{
-    if(!list) return;
-    if(!snap.exists()) {
-      list.innerHTML='<div style="text-align:center;color:var(--off);padding:3rem">Ingen nyheter ennå.</div>';
-      return;
-    }
-    const items=[];
-    snap.forEach(c=>items.unshift({id:c.key,...c.val()}));
+  if(adminPanel)adminPanel.style.display=isAdmin()?'block':'none';
+  if(!window._fb||!window._db){if(list)list.innerHTML='<div style="text-align:center;color:var(--off);padding:3rem">Firebase ikke tilkoblet.</div>';return;}
+  if(window._newsRef)window._fb.off(window._newsRef);
+  window._newsRef=window._fb.ref(window._db,'news');
+  window._fb.onValue(window._newsRef,snap=>{
+    if(!list)return;
+    if(!snap.exists()){list.innerHTML='<div style="text-align:center;color:var(--off);padding:3rem">Ingen nyheter ennå.</div>';return;}
+    const items=[];snap.forEach(c=>items.unshift({id:c.key,...c.val()}));
     list.innerHTML=items.map(n=>`
       <div class="news-item" id="newsitem-${n.id}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem">
@@ -1396,127 +1180,160 @@ function loadNews() {
             <button onclick="deleteNews('${n.id}')" style="background:none;border:1px solid rgba(204,51,51,.3);color:#ff8888;padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">🗑️ Slett</button>
           </div>`:''}
         </div>
-        ${n.img?`<img src="${n.img}" alt="${n.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:6px;margin-bottom:.8rem">` : ''}
+        ${n.img?`<img src="${n.img}" alt="${n.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:6px;margin-bottom:.8rem">`:''}
         <div class="news-title">${n.title}</div>
         <div class="news-date">${new Date(n.createdAt).toLocaleDateString('no',{day:'numeric',month:'long',year:'numeric'})}</div>
         <div class="news-body">${n.body}</div>
       </div>`).join('');
   });
-  window._newsUnsub = true;
 }
 
-let _newsImgData = null;
-
-function previewNewsImg(e) {
-  const file = e.target.files[0];
-  if(!file) return;
-  if(file.size > 5*1024*1024) { toast('Bilde for stort – maks 5MB'); return; }
-  const reader = new FileReader();
-  reader.onload = ev => {
-    _newsImgData = ev.target.result;
-    const preview = document.getElementById('news-img-preview');
-    const label = document.getElementById('news-img-label');
-    if(preview) { preview.src = _newsImgData; preview.style.display='block'; }
-    if(label) label.textContent = '✅ ' + file.name;
+function previewNewsImg(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>5*1024*1024){toast('Bilde for stort – maks 5MB');return;}
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    _newsImgData=ev.target.result;
+    const preview=document.getElementById('news-img-preview');
+    const label=document.getElementById('news-img-label');
+    if(preview){preview.src=_newsImgData;preview.style.display='block';}
+    if(label)label.textContent='✅ '+file.name;
   };
   reader.readAsDataURL(file);
 }
 
-async function publishNews() {
-  if(!isAdmin()) { toast('Du har ikke tilgang til å publisere nyheter. Sjekk at din UID er i ADMIN_UIDS.'); return; }
-  const title = document.getElementById('news-title-inp').value.trim();
-  const body  = document.getElementById('news-body-inp').value.trim();
-  const tag   = document.getElementById('news-tag-inp').value;
-  if(!title||!body) { toast('Fyll ut tittel og innhold'); return; }
-  const btn = document.getElementById('news-publish-btn');
-  if(btn) { btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Publiserer...'; }
-  try {
-    const newRef = window._fb.push(window._fb.ref(window._db,'news'));
-    await window._fb.set(newRef, {
-      title, body, tag,
-      img: _newsImgData || null,
-      authorUid: currentUser.uid,
-      authorName: currentUser.name,
-      createdAt: Date.now()
-    });
+async function publishNews(){
+  if(!isAdmin()){toast('Du har ikke tilgang. Legg til din UID i ADMIN_UIDS.');return;}
+  const title=document.getElementById('news-title-inp').value.trim();
+  const body=document.getElementById('news-body-inp').value.trim();
+  const tag=document.getElementById('news-tag-inp').value;
+  if(!title||!body){toast('Fyll ut tittel og innhold');return;}
+  const btn=document.getElementById('news-publish-btn');
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Publiserer...';}
+  try{
+    const newRef=window._fb.push(window._fb.ref(window._db,'news'));
+    await window._fb.set(newRef,{title,body,tag,img:_newsImgData||null,authorUid:currentUser.uid,authorName:currentUser.name,createdAt:Date.now()});
     document.getElementById('news-title-inp').value='';
     document.getElementById('news-body-inp').value='';
-    const preview = document.getElementById('news-img-preview');
-    if(preview) { preview.src=''; preview.style.display='none'; }
-    const label = document.getElementById('news-img-label');
-    if(label) label.textContent='Klikk for å laste opp bilde';
-    _newsImgData = null;
-    toast('✅ Nyhet publisert!');
-  } catch(e) {
-    toast('❌ Feil ved publisering: ' + e.message);
-    console.error('publishNews error:', e);
-  } finally {
-    if(btn) { btn.disabled=false; btn.textContent='Publiser nyhet'; }
-  }
+    const preview=document.getElementById('news-img-preview');
+    if(preview){preview.src='';preview.style.display='none';}
+    const label=document.getElementById('news-img-label');
+    if(label)label.textContent='Klikk for å laste opp bilde';
+    _newsImgData=null;toast('✅ Nyhet publisert!');
+  }catch(e){toast('❌ Feil: '+e.message);console.error(e);}
+  finally{if(btn){btn.disabled=false;btn.textContent='Publiser nyhet';}}
 }
 
-
-async function deleteNews(id) {
-  if(!isAdmin()) return;
-  if(!confirm('Slette denne nyheten?')) return;
+async function deleteNews(id){
+  if(!isAdmin())return;
+  if(!confirm('Slette denne nyheten?'))return;
   await window._fb.remove(window._fb.ref(window._db,'news/'+id));
   toast('Nyhet slettet');
 }
 
-async function editNews(id) {
-  if(!isAdmin()) return;
-  const snap = await window._fb.get(window._fb.ref(window._db,'news/'+id));
-  if(!snap.exists()) return;
-  const n = snap.val();
-  // Inline edit: replace the news item with an edit form
-  const el = document.getElementById('newsitem-'+id);
-  if(!el) return;
-  el.innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:.7rem">
-      <div class="f"><label>Tittel</label><input type="text" id="enews-title" value="${(n.title||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.6rem .8rem;border-radius:3px;font-size:.88rem"></div>
-      <div class="f"><label>Innhold</label><textarea id="enews-body" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.6rem .8rem;border-radius:3px;font-size:.88rem;min-height:100px;resize:vertical">${n.body||''}</textarea></div>
-      ${n.img?`<img src="${n.img}" style="width:100%;max-height:150px;object-fit:cover;border-radius:4px">`:``}
-      <div style="display:flex;gap:.5rem">
-        <button onclick="saveNewsEdit('${id}')" class="btn-hp" style="flex:1">💾 Lagre</button>
-        <button onclick="loadNews()" class="btn-ghost" style="flex:1">Avbryt</button>
-      </div>
-    </div>`;
+async function editNews(id){
+  if(!isAdmin())return;
+  const snap=await window._fb.get(window._fb.ref(window._db,'news/'+id));
+  if(!snap.exists())return;
+  const n=snap.val();
+  const el=document.getElementById('newsitem-'+id);if(!el)return;
+  el.innerHTML=`<div style="display:flex;flex-direction:column;gap:.7rem">
+    <div class="f"><label>Tittel</label><input type="text" id="enews-title" value="${(n.title||'').replace(/"/g,'&quot;')}" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.6rem .8rem;border-radius:3px;font-size:.88rem"></div>
+    <div class="f"><label>Innhold</label><textarea id="enews-body" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.6rem .8rem;border-radius:3px;font-size:.88rem;min-height:100px;resize:vertical">${n.body||''}</textarea></div>
+    ${n.img?`<img src="${n.img}" style="width:100%;max-height:150px;object-fit:cover;border-radius:4px">`:''}
+    <div style="display:flex;gap:.5rem">
+      <button onclick="saveNewsEdit('${id}')" class="btn-hp" style="flex:1">💾 Lagre</button>
+      <button onclick="loadNews()" class="btn-ghost" style="flex:1">Avbryt</button>
+    </div>
+  </div>`;
 }
 
-async function saveNewsEdit(id) {
-  if(!isAdmin()) return;
-  const title = document.getElementById('enews-title').value.trim();
-  const body  = document.getElementById('enews-body').value.trim();
-  if(!title||!body) { toast('Tittel og innhold er påkrevd'); return; }
+async function saveNewsEdit(id){
+  if(!isAdmin())return;
+  const title=document.getElementById('enews-title').value.trim();
+  const body=document.getElementById('enews-body').value.trim();
+  if(!title||!body){toast('Tittel og innhold er påkrevd');return;}
   await window._fb.update(window._fb.ref(window._db,'news/'+id),{title,body,updatedAt:Date.now()});
   toast('✅ Nyhet oppdatert!');
 }
 
-// ── CONTACT FORM ──
-async function sendContact() {
+// ── CONTACT ──
+async function sendContact(){
   const name=document.getElementById('ct-name').value.trim();
   const email=document.getElementById('ct-email').value.trim();
   const subject=document.getElementById('ct-subject').value;
   const msg=document.getElementById('ct-msg').value.trim();
-  if(!name||!email||!msg) { toast('Fyll ut alle felt'); return; }
-  // Lagre i Firebase — du ser meldingene i Realtime Database under /contactMessages
+  if(!name||!email||!msg){toast('Fyll ut alle felt');return;}
+  if(!window._fb||!window._db){toast('Feil: Firebase ikke tilkoblet');return;}
   const r=window._fb.push(window._fb.ref(window._db,'contactMessages'));
   await window._fb.set(r,{name,email,subject,msg,ts:Date.now()});
-  toast('✅ Melding sendt! Vi svarer deg innen 1-2 virkedager.');
+  toast('✅ Melding sendt! Vi svarer innen 1-2 virkedager.');
   ['ct-name','ct-email','ct-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
 }
 
 // ── MODAL ──
-function openModal(tab) { document.getElementById('modal-overlay').classList.add('open'); switchTab(tab||'login'); }
-function closeModal()    { document.getElementById('modal-overlay').classList.remove('open'); }
-function closeModalOnBg(e) { if(e.target.id==='modal-overlay') closeModal(); }
-function switchTab(tab) {
-  ['login','register','reset'].forEach(t=>{
-    document.getElementById('form-'+t).style.display=t===tab?'block':'none';
-  });
-  ['login','register'].forEach(t=>{
-    const el=document.getElementById('tab-'+t);
-    if(el) el.classList.toggle('active',t===tab);
-  });
+function openModal(tab){document.getElementById('modal-overlay').classList.add('open');switchTab(tab||'login');}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');}
+function closeModalOnBg(e){if(e.target.id==='modal-overlay')closeModal();}
+function switchTab(tab){
+  ['login','register','reset'].forEach(t=>{document.getElementById('form-'+t).style.display=t===tab?'block':'none';});
+  ['login','register'].forEach(t=>{const el=document.getElementById('tab-'+t);if(el)el.classList.toggle('active',t===tab);});
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') { closeMod
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeEditModal();}});
+
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3800);
+}
+window.addEventListener('scroll',()=>{document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>60);});
+</script>
+
+<!-- Firebase SDK — loaded LAST so page renders first -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged, updateProfile,
+         sendPasswordResetEmail, sendEmailVerification }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, push, set, get, onValue, off, query,
+         orderByChild, limitToLast, update, remove, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCTvWHRHOC_r003D2r2xVuM9fwMXkkAu_A",
+  authDomain:        "skivaro-33c88.firebaseapp.com",
+  projectId:         "skivaro-33c88",
+  storageBucket:     "skivaro-33c88.firebasestorage.app",
+  messagingSenderId: "451591105327",
+  appId:             "1:451591105327:web:5571d7857578a8aafd4fda",
+  databaseURL:       "https://skivaro-33c88-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+try {
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getDatabase(app);
+  window._auth = auth;
+  window._db   = db;
+  window._fb   = { ref, push, set, get, onValue, off, query, orderByChild,
+                    limitToLast, update, remove, serverTimestamp,
+                    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+                    signOut, onAuthStateChanged, updateProfile,
+                    sendPasswordResetEmail, sendEmailVerification };
+  onAuthStateChanged(auth, user => {
+    window.currentUser = user
+      ? { uid: user.uid, name: user.displayName || user.email.split('@')[0],
+           email: user.email, emailVerified: user.emailVerified }
+      : null;
+    window._fbReady = true;
+    listenListings();
+    if (typeof window.onAuthReady === 'function') window.onAuthReady(window.currentUser);
+  });
+} catch(e) {
+  console.error('Firebase failed:', e);
+  window._fbReady = true; // hide loader even on error
+  document.getElementById('page-loader')?.remove();
+}
+</script>
+</body>
+</html>
