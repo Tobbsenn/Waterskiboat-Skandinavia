@@ -747,7 +747,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
 // Finn din UID i Firebase Console → Authentication → Users
 // ══════════════════════════════════════════════════
 const ADMIN_UIDS = [
-  "sTatuZmdE4MOv4p43XOBieQulim2"   //← fjern // og lim inn din UID
+   "Kg4K1o0fl4YjQIZaVyQVOW7sgUE2"   //← fjern // og lim inn din UID
 ];
 
 // ── STATE ──
@@ -771,11 +771,22 @@ window.onAuthReady = function(user) {
 };
 
 function hideLoader() {
-  setTimeout(() => {
-    const l = document.getElementById('page-loader');
-    if (l) { l.style.opacity='0'; l.style.transition='opacity .4s'; setTimeout(()=>l.remove(),400); }
-  }, 600);
+  const l = document.getElementById('page-loader');
+  if (!l) return;
+  l.style.opacity='0';
+  l.style.transition='opacity .5s';
+  setTimeout(()=>{ if(l.parentNode) l.remove(); }, 500);
 }
+
+// Hard timeout — if Firebase never responds within 6s, force show the page anyway
+setTimeout(() => {
+  const l = document.getElementById('page-loader');
+  if (l) {
+    console.warn('Firebase did not respond in time — showing page anyway');
+    l.remove();
+    listenListings(); // try to load listings without auth
+  }
+}, 6000);
 
 function checkVerification() {
   const banner = document.getElementById('verify-banner');
@@ -863,8 +874,7 @@ async function sendReset() {
 
 async function doLogout() {
   if (window._activeMsgRef) {
-    if(window._activeMsgHandler) window._fb.off(window._activeMsgRef, window._activeMsgHandler);
-    else window._fb.off(window._activeMsgRef);
+    window._fb.off(window._activeMsgRef, window._activeMsgHandler || undefined);
     window._activeMsgRef=null; window._activeMsgHandler=null;
   }
   await window._fb.signOut(window._auth);
@@ -1277,8 +1287,7 @@ function openConv(convId) {
 
   // Avregistrer gammel meldingslytter
   if(window._activeMsgRef) {
-    if(window._activeMsgHandler) window._fb.off(window._activeMsgRef, window._activeMsgHandler);
-    else window._fb.off(window._activeMsgRef);
+    window._fb.off(window._activeMsgRef, window._activeMsgHandler || undefined);
     window._activeMsgRef = null;
     window._activeMsgHandler = null;
   }
@@ -1305,35 +1314,41 @@ function openConv(convId) {
       <button class="chat-send" onclick="sendMsg('${convId}')">↑</button>
     </div>`;
 
-  // Lytter på meldinger — bruker off() for ryddig avregistrering
+  // Use requestAnimationFrame to guarantee DOM is painted before attaching listener
   const msgRef = window._fb.ref(window._db, 'messages/' + convId);
   window._activeMsgRef = msgRef;
 
-  // setTimeout(0) ensures the innerHTML above is fully parsed by the browser
-  // before Firebase fires the first onValue callback (which is synchronous)
-  setTimeout(() => {
-    const handler = snap => {
-      const msgEl = document.getElementById('chat-msgs');
-      if (!msgEl) {
-        // chat panel was replaced, stop listening
-        window._fb.off(msgRef);
-        window._activeMsgRef = null;
-        return;
-      }
-      const msgs = [];
-      if (snap.exists()) snap.forEach(c => msgs.push(c.val()));
-      msgs.sort((a,b) => (a.ts||0) - (b.ts||0));
-      if (!msgs.length) return;
-      msgEl.innerHTML = msgs.map(m => {
-        const mine = m.from === currentUser.uid;
-        const t = new Date(m.ts).toLocaleTimeString('no',{hour:'2-digit',minute:'2-digit'});
-        return `<div class="msg-row ${mine?'mine':'theirs'}"><div class="bubble">${m.text}</div><div class="bubble-time">${t}</div></div>`;
-      }).join('');
-      msgEl.scrollTop = msgEl.scrollHeight;
-    };
-    window._fb.onValue(msgRef, handler);
-    window._activeMsgHandler = handler;
-  }, 0);
+  function renderMsgs(snap) {
+    // Always re-query the element — it may have been replaced
+    const msgEl = document.getElementById('chat-msgs');
+    if (!msgEl) {
+      window._fb.off(msgRef, renderMsgs);
+      window._activeMsgRef = null;
+      window._activeMsgHandler = null;
+      return;
+    }
+    const msgs = [];
+    if (snap.exists()) snap.forEach(c => msgs.push(c.val()));
+    msgs.sort((a,b) => (a.ts||0) - (b.ts||0));
+    // Always render, even empty (clear old content)
+    msgEl.innerHTML = msgs.length
+      ? msgs.map(m => {
+          const mine = m.from === currentUser.uid;
+          const t = new Date(m.ts).toLocaleTimeString('no',{hour:'2-digit',minute:'2-digit'});
+          return `<div class="msg-row ${mine?'mine':'theirs'}"><div class="bubble">${m.text}</div><div class="bubble-time">${t}</div></div>`;
+        }).join('')
+      : '<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
+    msgEl.scrollTop = msgEl.scrollHeight;
+  }
+
+  // requestAnimationFrame guarantees the browser has finished painting innerHTML
+  // before we attach the Firebase listener (which fires synchronously on first call)
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      window._fb.onValue(msgRef, renderMsgs);
+      window._activeMsgHandler = renderMsgs;
+    });
+  });
 
   // Oppdater conv-liste markering
   document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));
