@@ -373,7 +373,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   <section class="hero">
     <div class="hero-media">
       <video class="hero-video" autoplay muted loop playsinline>
-       <source src="https://res.cloudinary.com/dmykmhrn2/video/upload/v1774812486/nettside_vid_ypm2ly.mp4" type="video/mp4">
+        <source src="nettside vid.mp4" type="video/mp4">
       </video>
     </div>
     <div class="hero-overlay"></div>
@@ -689,7 +689,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
 // ADMIN — legg inn din Firebase UID her
 // Firebase Console → Authentication → Users → klikk din bruker → kopier UID
 const ADMIN_UIDS = [
-   "sTatuZmdE4MOv4p43XOBieQulim2"
+  // "LIMIN_UID_HER"
 ];
 // ═══════════════════════════════════════════════
 
@@ -782,7 +782,7 @@ async function sendReset() {
 }
 
 async function doLogout() {
-  if(window._activeMsgRef){window._fb.off(window._activeMsgRef,window._activeMsgHandler||undefined);window._activeMsgRef=null;window._activeMsgHandler=null;}
+  if(window._chatPollTimer){clearInterval(window._chatPollTimer);window._chatPollTimer=null;}
   await window._fb.signOut(window._auth);
   currentUser=null;convs=[];updateNav();showPage('home');toast('Du er logget ut');
 }
@@ -1082,82 +1082,97 @@ function renderChatEmpty(){
   document.getElementById('chat-panel').innerHTML=`<div class="chat-empty-state"><div style="font-size:2.5rem;margin-bottom:.8rem">💬</div><p>Velg en samtale</p></div>`;
 }
 
-function openConv(convId){
-  activeConvId=convId;
-  const conv=convs.find(c=>c.id===convId);if(!conv)return;
+function openConv(convId) {
+  activeConvId = convId;
+  const conv = convs.find(c => c.id === convId);
+  if (!conv) return;
 
-  // Tear down previous listener cleanly
-  if(window._activeMsgRef){
-    window._fb.off(window._activeMsgRef,window._activeMsgHandler||undefined);
-    window._activeMsgRef=null;window._activeMsgHandler=null;
-  }
+  // Stop any previous polling
+  if (window._chatPollTimer) { clearInterval(window._chatPollTimer); window._chatPollTimer = null; }
 
-  const other=conv.buyerUid===currentUser.uid?conv.sellerName:conv.buyerName;
-  const thumb=conv.boatImg?`<img src="${conv.boatImg}" alt="båt">`:'🚤';
-  window._fb.update(window._fb.ref(window._db,'conversations/'+convId),{lastRead:true});
+  const other = conv.buyerUid === currentUser.uid ? conv.sellerName : conv.buyerName;
+  const thumb = conv.boatImg ? `<img src="${conv.boatImg}" alt="båt">` : '🚤';
 
-  // Build chat UI
-  document.getElementById('chat-panel').innerHTML=`
+  window._fb.update(window._fb.ref(window._db, 'conversations/' + convId), {lastRead: true});
+
+  document.getElementById('chat-panel').innerHTML = `
     <div class="chat-header">
       <div class="chat-boat-ref" onclick="showDetail('${conv.boatId}')">
         <div class="chat-boat-thumb">${thumb}</div>
-        <div><div class="chat-boat-name">${conv.boatName||'Ukjent'}</div><div class="chat-boat-price">${conv.boatPrice?fmtPrice(conv.boatPrice):''}</div></div>
+        <div><div class="chat-boat-name">${conv.boatName || 'Ukjent'}</div><div class="chat-boat-price">${conv.boatPrice ? fmtPrice(conv.boatPrice) : ''}</div></div>
         <div style="margin-left:auto;color:var(--off);font-size:.8rem">↗</div>
       </div>
       <div class="chat-with"><div class="chat-avatar">👤</div><div><div class="chat-uname">${other}</div></div></div>
     </div>
-    <div class="chat-messages" id="chat-msgs"></div>
+    <div class="chat-messages" id="chat-msgs">
+      <div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem">Laster meldinger...</div>
+    </div>
     <div class="chat-input-wrap">
       <textarea class="chat-input" id="chat-input" placeholder="Skriv en melding..."
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('${convId}')}" rows="1"></textarea>
       <button class="chat-send" onclick="sendMsg('${convId}')">↑</button>
     </div>`;
 
-  // Attach Firebase listener AFTER two animation frames (guarantees DOM paint)
-  const msgRef=window._fb.ref(window._db,'messages/'+convId);
-  window._activeMsgRef=msgRef;
+  // Update active conv in list
+  document.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+  const idx = convs.findIndex(c => c.id === convId);
+  const items = document.querySelectorAll('.conv-item');
+  if (items[idx]) items[idx].classList.add('active');
 
-  function renderMsgs(snap){
-    const msgEl=document.getElementById('chat-msgs');
-    if(!msgEl){
-      window._fb.off(msgRef,renderMsgs);
-      window._activeMsgRef=null;window._activeMsgHandler=null;
+  // Store convId in a stable variable for the closure
+  const _convId = convId;
+
+  async function fetchAndRender() {
+    // Always re-query — never cache the element reference
+    const msgEl = document.getElementById('chat-msgs');
+    if (!msgEl) {
+      clearInterval(window._chatPollTimer);
+      window._chatPollTimer = null;
       return;
     }
-    const msgs=[];
-    if(snap.exists())snap.forEach(c=>msgs.push(c.val()));
-    msgs.sort((a,b)=>(a.ts||0)-(b.ts||0));
-    msgEl.innerHTML=msgs.length
-      ?msgs.map(m=>{
-          const mine=m.from===currentUser.uid;
-          const t=new Date(m.ts).toLocaleTimeString('no',{hour:'2-digit',minute:'2-digit'});
-          return `<div class="msg-row ${mine?'mine':'theirs'}"><div class="bubble">${m.text}</div><div class="bubble-time">${t}</div></div>`;
-        }).join('')
-      :'<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
-    msgEl.scrollTop=msgEl.scrollHeight;
+
+    try {
+      const snap = await window._fb.get(window._fb.ref(window._db, 'messages/' + _convId));
+      const msgs = [];
+      if (snap.exists()) snap.forEach(c => msgs.push(c.val()));
+      msgs.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+
+      // Always render — remove the count-check that was skipping updates
+      const atBottom = msgEl.scrollHeight - msgEl.scrollTop - msgEl.clientHeight < 80;
+      msgEl.innerHTML = msgs.length
+        ? msgs.map(m => {
+            const mine = m.from === currentUser.uid;
+            const t = new Date(m.ts).toLocaleTimeString('no', {hour:'2-digit', minute:'2-digit'});
+            return `<div class="msg-row ${mine ? 'mine' : 'theirs'}"><div class="bubble">${m.text}</div><div class="bubble-time">${t}</div></div>`;
+          }).join('')
+        : '<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
+
+      if (atBottom) msgEl.scrollTop = msgEl.scrollHeight;
+
+    } catch(e) {
+      // Show error in chat window so we can debug
+      const msgEl2 = document.getElementById('chat-msgs');
+      if (msgEl2) msgEl2.innerHTML = `<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Feil: ${e.message}</div>`;
+      console.error('fetchAndRender:', e);
+    }
   }
 
-  window._activeMsgHandler=renderMsgs;
-
-  // Double rAF ensures browser has fully painted the new innerHTML
-  requestAnimationFrame(()=>requestAnimationFrame(()=>window._fb.onValue(msgRef,renderMsgs)));
-
-  // Update active state in conv list
-  document.querySelectorAll('.conv-item').forEach(el=>el.classList.remove('active'));
-  const idx=convs.findIndex(c=>c.id===convId);
-  const items=document.querySelectorAll('.conv-item');
-  if(items[idx])items[idx].classList.add('active');
+  // Run immediately, then every 1.5s
+  fetchAndRender();
+  window._chatPollTimer = setInterval(fetchAndRender, 1500);
 }
 
-async function sendMsg(convId){
-  const input=document.getElementById('chat-input');
-  const txt=input?.value.trim();if(!txt||!currentUser)return;
-  input.value='';
-  const {ref,push,set,update}=window._fb;
-  const msgRef=push(ref(window._db,'messages/'+convId));
-  await set(msgRef,{from:currentUser.uid,fromName:currentUser.name,text:txt,ts:Date.now()});
-  await update(ref(window._db,'conversations/'+convId),{lastMsg:txt,lastTs:Date.now(),lastSender:currentUser.uid,lastRead:false});
+async function sendMsg(convId) {
+  const input = document.getElementById('chat-input');
+  const txt = input ? input.value.trim() : '';
+  if (!txt || !currentUser) return;
+  input.value = '';
+  const {ref, push, set, update} = window._fb;
+  const msgRef = push(ref(window._db, 'messages/' + convId));
+  await set(msgRef, {from: currentUser.uid, fromName: currentUser.name, text: txt, ts: Date.now()});
+  await update(ref(window._db, 'conversations/' + convId), {lastMsg: txt, lastTs: Date.now(), lastSender: currentUser.uid, lastRead: false});
 }
+
 
 // ── NEWS ──
 function loadNews(){
