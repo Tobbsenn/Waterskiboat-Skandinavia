@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SkiVaro – Skandinavias Vannskimarked</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"></noscript>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1131,15 +1133,24 @@ function openConv(convId) {
       return;
     }
 
+    // Safety check: make sure Firebase is ready
+    if (!window._fb || !window._db) {
+      msgEl.innerHTML = '<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Firebase ikke klar</div>';
+      return;
+    }
+
     try {
       const snap = await window._fb.get(window._fb.ref(window._db, 'messages/' + _convId));
       const msgs = [];
       if (snap.exists()) snap.forEach(c => msgs.push(c.val()));
       msgs.sort((a, b) => (a.ts || 0) - (b.ts || 0));
 
-      // Always render — remove the count-check that was skipping updates
-      const atBottom = msgEl.scrollHeight - msgEl.scrollTop - msgEl.clientHeight < 80;
-      msgEl.innerHTML = msgs.length
+      // Re-query element in case DOM changed during async await
+      const el = document.getElementById('chat-msgs');
+      if (!el) { clearInterval(window._chatPollTimer); return; }
+
+      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+      el.innerHTML = msgs.length
         ? msgs.map(m => {
             const mine = m.from === currentUser.uid;
             const t = new Date(m.ts).toLocaleTimeString('no', {hour:'2-digit', minute:'2-digit'});
@@ -1147,13 +1158,12 @@ function openConv(convId) {
           }).join('')
         : '<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
 
-      if (atBottom) msgEl.scrollTop = msgEl.scrollHeight;
+      if (atBottom) el.scrollTop = el.scrollHeight;
 
     } catch(e) {
-      // Show error in chat window so we can debug
-      const msgEl2 = document.getElementById('chat-msgs');
-      if (msgEl2) msgEl2.innerHTML = `<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Feil: ${e.message}</div>`;
-      console.error('fetchAndRender:', e);
+      const el = document.getElementById('chat-msgs');
+      if (el) el.innerHTML = `<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Feil: ${e.message}</div>`;
+      console.error('fetchAndRender feil:', e);
     }
   }
 
