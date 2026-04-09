@@ -691,7 +691,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
 // ADMIN — legg inn din Firebase UID her
 // Firebase Console → Authentication → Users → klikk din bruker → kopier UID
 const ADMIN_UIDS = [
-  // "LIMIN_UID_HER"
+   "Kg4K1o0fl4YjQIZaVyQVOW7sgUE2"
 ];
 // ═══════════════════════════════════════════════
 
@@ -923,9 +923,10 @@ function showDetail(id){
     <div class="c-field"><label>Din melding til selger</label>
       <textarea id="contact-msg" style="min-height:110px">Hei!
 
-Jeg er interessert i ${b.name} (${b.year}) til kr ${parseInt(b.price).toLocaleString('no-NO')}.
+Hei. Jeg er interessert i ${b.name} (${b.year}) til kr ${parseInt(b.price).toLocaleString('no-NO')}. Å lurer på om denne forsatt er tilgjengelig?
 
-Er den fortsatt tilgjengelig? Ta gjerne kontakt!
+Kan du fortelle litt mer om tilstand, bruk og vedlikehold? Jeg er også interessert i om det er noen kjente feil eller ting som bør utbedres.
+Gi gjerne beskjed om det er mulig å komme på visning, og om prisen er diskuterbar.
 
 Mvh ${currentUser.name}</textarea>
     </div>
