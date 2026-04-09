@@ -794,10 +794,7 @@ function showErr(el,msg){el.textContent=msg;el.style.display='block';}
 function updateNav() {
   const nr=document.getElementById('nav-right');
   if(currentUser){
-    const unread=convs.filter(c=>c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead).length;
-    const badge=unread>0?`<span class="msg-badge">${unread}</span>`:'';
-    nr.innerHTML=`<button class="msg-btn" onclick="requireAuth('messages')">💬 Meldinger${badge}</button>
-      <div class="user-pill"><div class="user-dot"></div>${currentUser.name}</div>
+    nr.innerHTML=`<div class="user-pill"><div class="user-dot"></div>${currentUser.name}</div>
       <button class="btn-ghost" onclick="doLogout()">Logg ut</button>`;
   }else{
     nr.innerHTML=`<button class="btn-ghost" onclick="openModal('login')">Logg inn</button>
@@ -922,8 +919,19 @@ function showDetail(id){
   if(!currentUser){contact=`<div class="lock-msg"><div class="lock-icon">🔒</div><p>Logg inn for å kontakte selger.</p><button class="btn-lock" onclick="openModal('login')">Logg inn</button><button class="btn-ghost" style="width:100%;padding:.65rem;margin-top:.5rem" onclick="openModal('register')">Registrer deg gratis</button></div>`;}
   else if(currentUser.uid===b.sellerUid){contact=`<div style="padding:1rem;background:var(--dark3);border-radius:4px;border:1px solid var(--border);text-align:center;color:var(--off);font-size:.85rem;margin-bottom:.8rem">Dette er din annonse</div>
     <div class="listing-actions"><button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Rediger</button><button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Slett</button></div>`;}
-  else{contact=`<div class="c-field"><label>Din melding</label><textarea id="contact-msg">Hei! Er ${b.name} (${b.year}) fortsatt tilgjengelig?</textarea></div>
-    <button class="btn-contact" onclick="startConv('${b.id}')">💬 Send melding til selger</button>`;}
+  else{contact=`
+    <div class="c-field"><label>Din melding til selger</label>
+      <textarea id="contact-msg" style="min-height:110px">Hei!
+
+Jeg er interessert i ${b.name} (${b.year}) til kr ${parseInt(b.price).toLocaleString('no-NO')}.
+
+Er den fortsatt tilgjengelig? Ta gjerne kontakt!
+
+Mvh ${currentUser.name}</textarea>
+    </div>
+    <button class="btn-contact" onclick="sendEmailToSeller('${b.id}')">📧 Send e-post til selger</button>
+    <p style="font-size:.72rem;color:var(--off);margin-top:.5rem;text-align:center">Åpner e-post-appen din med ferdig utfylt melding</p>
+  `;}
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-hero">${imgSection}<div class="detail-hero-overlay"></div>
       <div class="detail-hero-content"><div class="detail-brand">${b.brand} · ${b.cat} · ${b.flag} ${b.country}</div><div class="detail-title">${b.name}</div></div>
@@ -1024,35 +1032,29 @@ function previewImgs(e){
 }
 
 // ── CONVERSATIONS ──
-async function startConv(boatId){
-  if(!currentUser){openModal('login');return;}
-  const boat=listings.find(b=>b.id===boatId);
-  if(!boat||currentUser.uid===boat.sellerUid)return;
-  const txt=document.getElementById('contact-msg')?.value.trim();
-  if(!txt){toast('Skriv en melding først');return;}
-  const {ref,push,set,get,update}=window._fb;const db=window._db;
-  const existSnap=await get(ref(db,'userConvs/'+currentUser.uid));
-  let convId=null;
-  if(existSnap.exists()){
-    for(const cid of Object.keys(existSnap.val())){
-      const cs=await get(ref(db,'conversations/'+cid));
-      if(cs.exists()&&cs.val().boatId===boatId){convId=cid;break;}
-    }
+function sendEmailToSeller(boatId) {
+  if (!currentUser) { openModal('login'); return; }
+  const boat = listings.find(b => b.id === boatId);
+  if (!boat || currentUser.uid === boat.sellerUid) return;
+
+  const msg = document.getElementById('contact-msg')?.value.trim() || '';
+  if (!msg) { toast('Skriv en melding først'); return; }
+
+  const sellerEmail = boat.sellerEmail || '';
+  if (!sellerEmail) {
+    toast('Selger har ikke registrert e-post. Prøv igjen senere.');
+    return;
   }
-  if(!convId){
-    const newRef=push(ref(db,'conversations'));convId=newRef.key;
-    await set(newRef,{boatId,boatName:boat.name,boatPrice:boat.price,boatImg:boat.img||null,
-      buyerUid:currentUser.uid,buyerName:currentUser.name,
-      sellerUid:boat.sellerUid,sellerName:boat.sellerName,
-      lastMsg:'',lastTs:Date.now(),lastSender:currentUser.uid,lastRead:false});
-    await set(ref(db,'userConvs/'+currentUser.uid+'/'+convId),true);
-    await set(ref(db,'userConvs/'+boat.sellerUid+'/'+convId),true);
-  }
-  const msgRef=push(ref(db,'messages/'+convId));
-  await set(msgRef,{from:currentUser.uid,fromName:currentUser.name,text:txt,ts:Date.now()});
-  await update(ref(db,'conversations/'+convId),{lastMsg:txt,lastTs:Date.now(),lastSender:currentUser.uid,lastRead:false});
-  activeConvId=convId;toast('✅ Melding sendt!');showPage('messages');
+
+  const subject = encodeURIComponent('SkiVaro: Interesse for ' + boat.name + ' (' + boat.year + ')');
+  const body = encodeURIComponent(msg);
+  const mailto = 'mailto:' + sellerEmail + '?subject=' + subject + '&body=' + body;
+
+  // Open default mail app
+  window.location.href = mailto;
+  toast('✅ E-post-appen åpnes med ferdig melding!');
 }
+
 
 function renderConvs(){
   if(!currentUser)return;
