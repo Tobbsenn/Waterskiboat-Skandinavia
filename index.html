@@ -765,7 +765,7 @@ async function doRegister() {
     await window._fb.set(window._fb.ref(window._db,'users/'+cred.user.uid),{name,email,country:document.getElementById('r-country').value,createdAt:Date.now()});
     await window._fb.sendEmailVerification(cred.user);
     closeModal();
-    toast('✅ Velkommen '+name+'! Sjekk e-posten din 📧');
+    toast('✅ Velkommen '+name+'! Sjekk e-posten din, ikke glem spam 📧');
   } catch(e) {
     showErr(err,e.code==='auth/email-already-in-use'?'E-posten er allerede i bruk':'Feil: '+e.message);
   } finally{btn.disabled=false;btn.textContent='Opprett gratis bruker';}
