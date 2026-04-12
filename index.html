@@ -347,58 +347,10 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
 })();
 </script>
 
-<!-- Firebase SDK — loaded LAST so page renders first -->
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-         signOut, onAuthStateChanged, updateProfile,
-         sendPasswordResetEmail, sendEmailVerification }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getDatabase, ref, push, set, get, onValue, off, query,
-         orderCityChild, limitToLast, update, remove, serverTimestamp }
-  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-const firebaseConfig = {
-  apiKey:            "AIzaSyCTvWHRHOC_r003D2r2xVuM9fwMXkkAu_A",
-  authDomain:        "skivaro-33c88.firebaseapp.com",
-  projectId:         "skivaro-33c88",
-  storageBucket:     "skivaro-33c88.firebasestorage.app",
-  messagingSenderId: "451591105327",
-  appId:             "1:451591105327:web:5571d7857578a8aafd4fda",
-  databaseURL:       "https://skivaro-33c88-default-rtdb.europe-west1.firebasedatabase.app"
-};
-
-try {
-  const app  = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getDatabase(app);
-  window._auth = auth;
-  window._db   = db;
-  window._fb   = { ref, push, set, get, onValue, off, query, orderCityChild,
-                    limitToLast, update, remove, serverTimestamp,
-                    createUserWithEmailAndPassword, signInWithEmailAndPassword,
-                    signOut, onAuthStateChanged, updateProfile,
-                    sendPasswordResetEmail, sendEmailVerification };
-  onAuthStateChanged(auth, user => {
-    window.currentUser = user
-      ? { uid: user.uid, name: user.displayName || user.email.split('@')[0],
-           email: user.email, emailVerified: user.emailVerified }
-      : null;
-    window._fbReady = true;
-    listenListings();
-    if (typeof window.onAuthReady === 'function') window.onAuthReady(window.currentUser);
-  });
-} catch(e) {
-  console.error('Firebase failed:', e);
-  window._fbReady = true; // hide loader even on error
-  document.getElementById('page-loader')?.remove();
-}
-<
-
 <!-- EMAIL VERIFICATION BANNER -->
 <div id="verify-banner" class="verify-banner" style="display:none">
   ⚠️ Emailen din er ikke bekreftet. Sjekk innboksen din eller spam.
-  <button onclick="resendVerification()">Resend verification email</button>
+  <button onclick="resendVerification()">Resend verification</button>
 </div>
 
 <nav id="main-nav">
@@ -406,10 +358,10 @@ try {
   <ul class="nav-center">
     <li><a onclick="showPage('home')">Home</a></li>
     <li><a onclick="showPage('listings')">Find a Boat</a></li>
-    <li><a onclick="filterCityCat('Boats-3Event')">3-Event</a></li>
-    <li><a onclick="filterCityCat('Wakeboard/Surf')">Wake &amp; Surf</a></li>
-    <li><a onclick="filterCityCat('Outboard')">Outboard</a></li>
-    <li><a onclick="filterCityCat('Show Ski')">Show Ski</a></li>
+    <li><a onclick="filterByCat('Boats-3Event')">3-Event</a></li>
+    <li><a onclick="filterByCat('Wakeboard/Surf')">Wake &amp; Surf</a></li>
+    <li><a onclick="filterByCat('Outboard')">Outboard</a></li>
+    <li><a onclick="filterByCat('Show Ski')">Show Ski</a></li>
     <li><a onclick="showPage('news')">News</a></li>
   </ul>
   <div class="nav-right" id="nav-right">
@@ -439,27 +391,27 @@ try {
     </div>
     <div class="hero-stats">
       <div><div class="h-stat-num" id="stat-count">0</div><div class="h-stat-label">Active listings</div></div>
-      <div><div class="h-stat-num">4</div><div class="h-stat-label">Countries</div></div>
+      <div><div class="h-stat-num">4</div><div class="h-stat-label">Land</div></div>
       <div><div class="h-stat-num">Gratis</div><div class="h-stat-label">To list</div></div>
     </div>
     <div class="scroll-hint"><span>↓</span> Scroll</div>
   </section>
 
-  <!-- IMAGE ROW: replace src with your own images -->
+  <!-- BILDERAD: bytt src på hver img med ditt eget bilde -->
   <div class="media-stripe">
-    <div class="media-slot" onclick="filterCityCat('Wakeboard/Surf')">
+    <div class="media-slot" onclick="filterByCat('Wakeboard/Surf')">
       <img src="https://www.streamyachts.com/wp-content-stream/uploads/2026_Centurion_ri230_20-1300x867.jpg" alt="Wake og Surf"><!-- 🖼️ BILDE 1 -->
       <div class="media-slot-label">Wake &amp; Surf</div>
     </div>
-    <div class="media-slot" onclick="filterCityCat('Boats-3Event')">
+    <div class="media-slot" onclick="filterByCat('Boats-3Event')">
       <img src="https://nautique.blob.core.windows.net/videos/2026/ski-web-video.jpg" alt="3-Event"><!-- 🖼️ BILDE 2 -->
       <div class="media-slot-label">3-Event</div>
     </div>
-    <div class="media-slot" onclick="filterCityCat('Show Ski')">
+    <div class="media-slot" onclick="filterByCat('Show Ski')">
       <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjha0dtPNDLVDTaianxFdjEXJEtR7q2VO2uwpRKexv-9Xg4-CXUIzlHIX27U3xgRAZqLxc5MS1FZ0RulOxi8sTRZTRdlRdORfPotDTBNBziGpAekyTMNNdhmlyji8aXtI1bYUEOKu3vM1Ud/s1600/Pyramid+behind+triple+Big.jpg" alt="Show Ski"><!-- 🖼️ BILDE 3 -->
       <div class="media-slot-label">Show Ski</div>
     </div>
-    <div class="media-slot" onclick="filterCityCat('Outboard')">
+    <div class="media-slot" onclick="filterByCat('Outboard')">
       <img src="https://www.aakrabaat.no/wp-content/uploads/2019/11/Finnmaster-T7_11-1.jpg" alt="Outboard"><!-- 🖼️ BILDE 4 -->
       <div class="media-slot-label">Outboard</div>
     </div>
@@ -469,10 +421,10 @@ try {
     <div class="section-label">Shop by sport</div>
     <div class="section-title">Choose <span>category</span></div>
     <div class="cat-grid">
-      <button class="cat-card" data-cat="Boats-3Event" onclick="filterCityCat('Boats-3Event')"><div class="cat-icon">🚤</div><div class="cat-name">Boats · 3 Event</div><div class="cat-desc">Slalom, jump and tricks – dedicated waterski boats</div><div class="cat-arrow">→</div></button>
-      <button class="cat-card" data-cat="Wakeboard/Surf" onclick="filterCityCat('Wakeboard/Surf')"><div class="cat-icon">🏄</div><div class="cat-name">Wakeboard / Surf</div><div class="cat-desc">Wake and surf boats with ballast system</div><div class="cat-arrow">→</div></button>
-      <button class="cat-card" data-cat="Outboard" onclick="filterCityCat('Outboard')"><div class="cat-icon">⛵️</div><div class="cat-name">Boats · Outboard</div><div class="cat-desc">Outboard waterski boats</div><div class="cat-arrow">→</div></button>
-      <button class="cat-card" data-cat="Show Ski" onclick="filterCityCat('Show Ski')"><div class="cat-icon">🎭</div><div class="cat-name">Boat · Show Ski</div><div class="cat-desc">Specialty boats for show ski</div><div class="cat-arrow">→</div></button>
+      <button class="cat-card" data-cat="Boats-3Event" onclick="filterByCat('Boats-3Event')"><div class="cat-icon">🚤</div><div class="cat-name">Boats · 3 Event</div><div class="cat-desc">Slalom, jump and tricks – dedicated waterski boats</div><div class="cat-arrow">→</div></button>
+      <button class="cat-card" data-cat="Wakeboard/Surf" onclick="filterByCat('Wakeboard/Surf')"><div class="cat-icon">🏄</div><div class="cat-name">Wakeboard / Surf</div><div class="cat-desc">Wake and surf boats with ballast system</div><div class="cat-arrow">→</div></button>
+      <button class="cat-card" data-cat="Outboard" onclick="filterByCat('Outboard')"><div class="cat-icon">⛵️</div><div class="cat-name">Boats · Outboard</div><div class="cat-desc">Outboard waterski boats</div><div class="cat-arrow">→</div></button>
+      <button class="cat-card" data-cat="Show Ski" onclick="filterByCat('Show Ski')"><div class="cat-icon">🎭</div><div class="cat-name">Boat · Show Ski</div><div class="cat-desc">Specialty boats for show ski</div><div class="cat-arrow">→</div></button>
     </div>
   </section>
 
@@ -525,7 +477,7 @@ try {
 <div id="page-sell" class="page">
   <div class="sell-header">
     <div class="section-label">Sell your boat</div>
-    <h1>Legg ut listing</h1>
+    <h1>Create listing</h1>
     <p>Nå kjøpere i Norway, Sweden, Denmark and Finland – gratis</p>
   </div>
   <div id="sell-locked" class="sell-wrap" style="display:none">
@@ -560,7 +512,7 @@ try {
     </div>
     <div class="sell-sec"><h2>📍 Location</h2>
       <div class="sg2">
-        <div class="f"><label>Countries *</label><select id="f-country-sell"><option>Norway</option><option>Sweden</option><option>Denmark</option><option>Finland</option></select></div>
+        <div class="f"><label>Land *</label><select id="f-country-sell"><option>Norway</option><option>Sweden</option><option>Denmark</option><option>Finland</option></select></div>
         <div class="f"><label>City / Location *</label><input type="text" id="f-city" placeholder="e.g. Oslo, Stockholm, Copenhagen"></div>
       </div>
     </div>
@@ -576,7 +528,7 @@ try {
       <input type="file" id="img-input" multiple accept="image/*" style="display:none" onchange="previewImgs(event)">
       <div class="img-previews" id="img-prev"></div>
     </div>
-    <button class="btn-submit" id="submit-btn" onclick="submitListing()">🚤 Publiser listing – Gratis</button>
+    <button class="btn-submit" id="submit-btn" onclick="submitListing()">🚤 Publish listing – Free</button>
     <p style="text-align:center;color:var(--off);font-size:.73rem;margin-top:.7rem;margin-bottom:2.5rem">Your listing will be visible across Scandinavia</p>
   </div>
 </div>
@@ -585,11 +537,11 @@ try {
 <div id="page-messages" class="page">
   <div class="msg-page">
     <div class="conv-list">
-      <div class="conv-list-header"><h2>Messages</h2><span class="unread-badge" id="unread-badge" style="display:none">0</span></div>
-      <div class="conv-items" id="conv-items"><div class="conv-empty-msg">No conversations yet</div></div>
+      <div class="conv-list-header"><h2>Meldinger</h2><span class="unread-badge" id="unread-badge" style="display:none">0</span></div>
+      <div class="conv-items" id="conv-items"><div class="conv-empty-msg">Ingen samtaler ennå</div></div>
     </div>
     <div class="chat-panel" id="chat-panel">
-      <div class="chat-empty-state"><div style="font-size:2.5rem;margin-bottom:.8rem">💬</div><p>Select a conversation</p></div>
+      <div class="chat-empty-state"><div style="font-size:2.5rem;margin-bottom:.8rem">💬</div><p>Velg en samtale</p></div>
     </div>
   </div>
 </div>
@@ -605,7 +557,7 @@ try {
       <div class="news-admin">
         <h3>➕ Publish news</h3>
         <div class="f"><label>Title *</label><input type="text" id="news-title-inp" placeholder="News headline"></div>
-        <div class="f"><label>Category</label><select id="news-tag-inp"><option value="Nyhet">News</option><option value="Oppdatering">Update</option><option value="Konkurranse">Competition</option><option value="Tips">Tips</option></select></div>
+        <div class="f"><label>Kategori</label><select id="news-tag-inp"><option value="News">News</option><option value="Update">Update</option><option value="Competition">Competition</option><option value="Tips">Tips</option></select></div>
         <div class="f"><label>Content *</label><textarea id="news-body-inp" placeholder="Write the news here..." style="min-height:120px"></textarea></div>
         <div class="f"><label>Photo (optional)</label>
           <div class="upload-zone" onclick="document.getElementById('news-img-inp').click()" style="padding:1rem">
@@ -618,7 +570,7 @@ try {
         <button class="btn-hp" id="news-publish-btn" onclick="publishNews()" style="margin-top:.5rem">Publish news</button>
       </div>
     </div>
-    <div id="news-list"><div style="text-align:center;color:var(--off);padding:3rem">Loading news...</div></div>
+    <div id="news-list"><div style="text-align:center;color:var(--off);padding:3rem">Laster nyheter...</div></div>
   </div>
 </div>
 
@@ -627,12 +579,12 @@ try {
   <div class="contact-page">
     <div class="contact-card-wrap">
       <h1>Contact us</h1>
-      <p>Have a question or need help? We will respond within 1–2 business days.</p>
+      <p>Have a question or need help? We respond within 1–2 business days.</p>
       <div class="f"><label>Your name</label><input type="text" id="ct-name" placeholder="John Smith"></div>
       <div class="f"><label>Your email</label><input type="email" id="ct-email" placeholder="your@email.com"></div>
       <div class="f"><label>Emne</label><select id="ct-subject"><option>General inquiry</option><option>Issue with listing</option><option>Report user</option><option>Technical issue</option><option>Other</option></select></div>
       <div class="f"><label>Melding</label><textarea id="ct-msg" placeholder="Describe your inquiry..." style="min-height:120px"></textarea></div>
-      <button class="btn-contact-submit" onclick="sendContact()">Send message</button>
+      <button class="btn-contact-submit" onclick="sendContact()">Send melding</button>
     </div>
   </div>
 </div>
@@ -652,7 +604,7 @@ try {
       <div class="mf"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"></div>
       <span class="forgot-link" onclick="switchTab('reset')">Forgot password?</span>
       <button class="btn-modal" id="login-btn" onclick="doLogin()">Log in</button>
-      <div class="modal-note">No account? <span onclick="switchTab('register')">Sign up for free →</span></div>
+      <div class="modal-note">Ikke bruker? <span onclick="switchTab('register')">Sign up gratis →</span></div>
     </div>
     <div id="form-register" style="display:none">
       <h2>Get started</h2>
@@ -660,7 +612,7 @@ try {
       <div class="mf"><label>Full name</label><input type="text" id="r-name" placeholder="John Smith"></div>
       <div class="mf"><label>Email</label><input type="email" id="r-email" placeholder="your@email.com"></div>
       <div class="mf"><label>Password (min. 8 characters)</label><input type="password" id="r-pass" placeholder="••••••••"></div>
-      <div class="mf"><label>Countries</label>
+      <div class="mf"><label>Land</label>
         <select id="r-country" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.65rem .88rem;border-radius:3px;font-size:.88rem;appearance:none">
           <option>Norway</option><option>Sweden</option><option>Denmark</option><option>Finland</option>
         </select>
@@ -671,21 +623,21 @@ try {
 <h4>2. User accounts</h4>
 <p>You are responsible for keeping your password secret. You must provide accurate information when registering.</p>
 <h4>3. Listings</h4>
-<p>Selgere er ansvarlige for at informasjonen er korrekt. SkiVaro er ikke ansvarlig for feil i listingne.</p>
+<p>Sellers are responsible for the accuracy of their listings. SkiVaro is not liable for errors in listings.</p>
 <h4>4. Messages</h4>
-<p>The messaging system is only for communication about purchases and sales. Spam is prohibited.</p>
-<h4>5. Privacy policy</h4>
-<p>Vi lagrer e-post, navn og listingdata i Firebase. Data deles ikke med tredjeparter.</p>
+<p>The messaging system is for communication about purchases only. Spam is prohibited.</p>
+<h4>5. Privacy</h4>
+<p>We store email, name and listing data in Firebase. Data is not shared with third parties.</p>
 <h4>6. Contact</h4>
 <p>Questions can be sent via the contact form on the website.</p></div>
         <label class="checkbox-row"><input type="checkbox" id="terms-check"> I agree to the terms and privacy policy</label>
       </div>
       <button class="btn-modal" id="reg-btn" onclick="doRegister()">Create free account</button>
-      <div class="modal-note">Already have an account? <span onclick="switchTab('login')">Log in →</span></div>
+      <div class="modal-note">Har du bruker? <span onclick="switchTab('login')">Log in →</span></div>
     </div>
     <div id="form-reset" style="display:none">
       <h2>Reset password</h2>
-      <p style="color:var(--off);font-size:.85rem;margin-bottom:1rem">We will send you an email with a link to reset your password.</p>
+      <p style="color:var(--off);font-size:.85rem;margin-bottom:1rem">We will send you a link to reset your password.</p>
       <div class="modal-err" id="reset-err"></div>
       <div class="mf"><label>Email</label><input type="email" id="reset-email" placeholder="your@email.com"></div>
       <button class="btn-modal" onclick="sendReset()">Send reset link</button>
@@ -706,8 +658,8 @@ try {
       <div class="f"><label>Condition</label><select id="edit-cond"><option>New</option><option>Good condition</option><option>Used</option><option>Project</option></select></div>
     </div>
     <div class="sg2">
-      <div class="f"><label>City</label><input type="text" id="edit-city"></div>
-      <div class="f"><label>Countries</label><select id="edit-country"><option>Norway</option><option>Sweden</option><option>Denmark</option><option>Finland</option></select></div>
+      <div class="f"><label>By</label><input type="text" id="edit-city"></div>
+      <div class="f"><label>Land</label><select id="edit-country"><option>Norway</option><option>Sweden</option><option>Denmark</option><option>Finland</option></select></div>
     </div>
     <div class="f"><label>Engine</label><input type="text" id="edit-engine"></div>
     <div class="sg2">
@@ -715,7 +667,7 @@ try {
       <div class="f"><label>Horsepower</label><input type="number" id="edit-hp"></div>
     </div>
     <div class="f"><label>Description</label><textarea id="edit-desc" style="min-height:100px"></textarea></div>
-    <button class="btn-submit" onclick="saveEdit()" style="margin-top:.5rem">Save endringer</button>
+    <button class="btn-submit" onclick="saveEdit()" style="margin-top:.5rem">Save changes</button>
   </div>
 </div>
 
@@ -724,8 +676,8 @@ try {
 <footer>
   <div class="foot-grid">
     <div><div class="foot-logo">Ski<span>Varo</span></div><p class="foot-tagline">Scandinavia's first dedicated marketplace for waterski boats, wakeboard and show ski.</p></div>
-    <div class="foot-col"><h4>Categoryer</h4><a onclick="filterCityCat('Boats-3Event')">Boats · 3 Event</a><a onclick="filterCityCat('Wakeboard/Surf')">Wakeboard / Surf</a><a onclick="filterCityCat('Outboard')">Boats · Outboard</a><a onclick="filterCityCat('Show Ski')">Boat · Show Ski</a></div>
-    <div class="foot-col"><h4>Links</h4><a onclick="showPage('news')">News</a><a onclick="requireAuth('sell')">List a boat</a><a onclick="requireAuth('messages')">Messages</a></div>
+    <div class="foot-col"><h4>Categories</h4><a onclick="filterByCat('Boats-3Event')">Boats · 3 Event</a><a onclick="filterByCat('Wakeboard/Surf')">Wakeboard / Surf</a><a onclick="filterByCat('Outboard')">Boats · Outboard</a><a onclick="filterByCat('Show Ski')">Boat · Show Ski</a></div>
+    <div class="foot-col"><h4>Lenker</h4><a onclick="showPage('news')">News</a><a onclick="requireAuth('sell')">List a boat</a><a onclick="requireAuth('messages')">Meldinger</a></div>
     <div class="foot-col"><h4>Account</h4><a onclick="openModal('login')">Log in</a><a onclick="openModal('register')">Sign up</a></div>
   </div>
   <div class="foot-bottom" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
@@ -737,7 +689,7 @@ try {
 <script>
 // ═══════════════════════════════════════════════
 // ADMIN — legg inn din Firebase UID her
-// Firebase Console → Authentication → Users → click your user → copy UID
+// Firebase Console → Authentication → Users → klikk din bruker → kopier UID
 const ADMIN_UIDS = [
    "Kg4K1o0fl4YjQIZaVyQVOW7sgUE2"
 ];
@@ -771,7 +723,7 @@ async function resendVerification() {
   try {
     await window._fb.sendEmailVerification(window._auth.currentUser);
     toast('✅ Verification email sent!');
-  } catch(e) { toast('Error: '+e.message); }
+  } catch(e) { toast('Feil: '+e.message); }
 }
 
 function fmtPrice(p) { return 'kr ' + parseInt(p).toLocaleString('en-US'); }
@@ -779,25 +731,23 @@ function isAdmin() { return currentUser && ADMIN_UIDS.includes(currentUser.uid);
 
 // ── AUTH ──
 async function doLogin() {
-  if(!window._fb||!window._auth){showErr(document.getElementById('login-err'),'Still connecting to Firebase, please try again in a moment.');return;}
   const email=document.getElementById('l-email').value.trim();
   const pass=document.getElementById('l-pass').value;
   const err=document.getElementById('login-err');
   const btn=document.getElementById('login-btn');
   err.style.display='none';
   if(!email||!pass){showErr(err,'Please enter email and password');return;}
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Logging in...';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Logger inn...';
   try {
     await window._fb.signInWithEmailAndPassword(window._auth,email,pass);
     closeModal();
   } catch(e) {
     showErr(err,(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found')
-      ?'Incorrect email or password':'Error: '+e.message);
+      ?'Incorrect email or password':'Feil: '+e.message);
   } finally{btn.disabled=false;btn.textContent='Log in';}
 }
 
 async function doRegister() {
-  if(!window._fb||!window._auth){showErr(document.getElementById('reg-err'),'Still connecting to Firebase, please try again in a moment.');return;}
   const name=document.getElementById('r-name').value.trim();
   const email=document.getElementById('r-email').value.trim();
   const pass=document.getElementById('r-pass').value;
@@ -806,9 +756,9 @@ async function doRegister() {
   const btn=document.getElementById('reg-btn');
   err.style.display='none';
   if(!name||!email||!pass){showErr(err,'Please fill in all fields');return;}
-  if(pass.length<8){showErr(err,'Password må være minst 8 tegn');return;}
+  if(pass.length<8){showErr(err,'Password must be at least 8 characters');return;}
   if(!terms){showErr(err,'You must accept the terms');return;}
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Creating account...';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Oppretter...';
   try {
     const cred=await window._fb.createUserWithEmailAndPassword(window._auth,email,pass);
     await window._fb.updateProfile(cred.user,{displayName:name});
@@ -817,21 +767,20 @@ async function doRegister() {
     closeModal();
     toast('✅ Welcome '+name+'! Sjekk e-posten din, ikke glem spam 📧');
   } catch(e) {
-    showErr(err,e.code==='auth/email-already-in-use'?'Emailen er allerede i bruk':'Error: '+e.message);
+    showErr(err,e.code==='auth/email-already-in-use'?'Emailen er allerede i bruk':'Feil: '+e.message);
   } finally{btn.disabled=false;btn.textContent='Create free account';}
 }
 
 async function sendReset() {
-  if(!window._fb||!window._auth){return;}
   const email=document.getElementById('reset-email').value.trim();
   const err=document.getElementById('reset-err');
   err.style.display='none';
-  if(!email){showErr(err,'Enter your email address');return;}
+  if(!email){showErr(err,'Enter your email');return;}
   try {
     await window._fb.sendPasswordResetEmail(window._auth,email);
     toast('✅ Reset link sent to '+email);
     switchTab('login');
-  } catch(e){showErr(err,e.code==='auth/user-not-found'?'No account with that email':'Error: '+e.message);}
+  } catch(e){showErr(err,e.code==='auth/user-not-found'?'No account with that email':'Feil: '+e.message);}
 }
 
 async function doLogout() {
@@ -924,7 +873,7 @@ function renderCard(b){
       <div class="card-brand">${b.brand}</div><div class="card-name">${b.name}</div>
       <div class="card-location">📍 ${b.city}, ${b.country}</div>
       <div class="card-price">${fmtPrice(b.price)}</div>
-      <div class="card-specs"><span>📅 ${b.year}</span>${b.length?`<span>📏 ${b.length} ft</span>`:''}${b.hp?`<span>⚡ ${b.hp} hp</span>`:''}${b.hours?`<span>⏱ ${b.hours} t</span>`:''}${b.condition?`<span>${b.condition}</span>`:''}</div>
+      <div class="card-specs"><span>📅 ${b.year}</span>${b.length?`<span>📏 ${b.length} ft</span>`:''}${b.hp?`<span>⚡ ${b.hp} hk</span>`:''}${b.hours?`<span>⏱ ${b.hours} t</span>`:''}${b.condition?`<span>${b.condition}</span>`:''}</div>
     </div></div>`;
 }
 
@@ -933,11 +882,11 @@ function afterRender(bs){bs.forEach(b=>{const imgs=b.imgs||(b.img?[b.img]:[]);if
 function renderFeatured(){
   const g=document.getElementById('featured-grid');const c=document.getElementById('feat-cta');if(!g)return;
   if(!listings.length){
-    g.innerHTML=`<div class="empty-state"><div class="empty-icon">🚤</div><div class="empty-title">Ingen listingr ennå</div><p class="empty-sub">Be the first!</p><button class="btn-hp" onclick="requireAuth('sell')">+ List your boat</button></div>`;
+    g.innerHTML=`<div class="empty-state"><div class="empty-icon">🚤</div><div class="empty-title">Ingen annonser ennå</div><p class="empty-sub">Bli den første!</p><button class="btn-hp" onclick="requireAuth('sell')">+ Legg ut din båt</button></div>`;
     if(c)c.innerHTML='';
   }else{
     const show=listings.slice(0,6);g.innerHTML=show.map(renderCard).join('');afterRender(show);
-    if(c)c.innerHTML=listings.length>6?`<button class="btn-hg" onclick="showPage('listings')">Se alle ${listings.length} listingr →</button>`:'';
+    if(c)c.innerHTML=listings.length>6?`<button class="btn-hg" onclick="showPage('listings')">Se alle ${listings.length} annonser →</button>`:'';
   }
 }
 
@@ -948,13 +897,13 @@ function filterBoats(){
     if(cat&&b.cat!==cat)return false;if(brand&&b.brand!==brand)return false;
     if(country&&b.country!==country)return false;if(cond&&b.condition!==cond)return false;return true;
   });
-  document.getElementById('result-count').textContent=filtered.length+' listing'+(filtered.length!==1?'r':'');
+  document.getElementById('result-count').textContent=filtered.length+' annonse'+(filtered.length!==1?'r':'');
   const g=document.getElementById('all-grid');
-  g.innerHTML=filtered.length?filtered.map(renderCard).join(''):`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">No results</div><p class="empty-sub">Try adjusting the filters</p></div>`;
+  g.innerHTML=filtered.length?filtered.map(renderCard).join(''):`<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-title">Ingen treff</div><p class="empty-sub">Prøv å endre filtrene</p></div>`;
   if(filtered.length)afterRender(filtered);
 }
-function filterCityCat(cat){showPage('listings');document.getElementById('f-cat').value=cat;document.querySelectorAll('.cat-card').forEach(c=>c.classList.toggle('active',c.dataset.cat===cat));filterBoats();}
-function filterCityBrand(brand){showPage('listings');document.getElementById('f-brand').value=brand;filterBoats();}
+function filterByCat(cat){showPage('listings');document.getElementById('f-cat').value=cat;document.querySelectorAll('.cat-card').forEach(c=>c.classList.toggle('active',c.dataset.cat===cat));filterBoats();}
+function filterByBrand(brand){showPage('listings');document.getElementById('f-brand').value=brand;filterBoats();}
 
 function showDetail(id){
   const b=listings.find(x=>x.id===id);if(!b)return;
@@ -968,13 +917,13 @@ function showDetail(id){
   }
   let contact;
   if(!currentUser){contact=`<div class="lock-msg"><div class="lock-icon">🔒</div><p>Log in for å kontakte selger.</p><button class="btn-lock" onclick="openModal('login')">Log in</button><button class="btn-ghost" style="width:100%;padding:.65rem;margin-top:.5rem" onclick="openModal('register')">Sign up gratis</button></div>`;}
-  else if(currentUser.uid===b.sellerUid){contact=`<div style="padding:1rem;background:var(--dark3);border-radius:4px;border:1px solid var(--border);text-align:center;color:var(--off);font-size:.85rem;margin-bottom:.8rem">Dette er din listing</div>
-    <div class="listing-actions"><button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Edit</button><button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Delete</button></div>`;}
+  else if(currentUser.uid===b.sellerUid){contact=`<div style="padding:1rem;background:var(--dark3);border-radius:4px;border:1px solid var(--border);text-align:center;color:var(--off);font-size:.85rem;margin-bottom:.8rem">This is your listing</div>
+    <div class="listing-actions"><button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Rediger</button><button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Slett</button></div>`;}
   else{contact=`
     <div class="c-field"><label>Your message to the seller</label>
       <textarea id="contact-msg" style="min-height:110px">Hei!
 
-Hei. I am interested in ${b.name} (${b.year}) til kr ${parseInt(b.price).toLocaleString('en-US')}. Å lurer på om denne forsatt er tilgjengelig?
+Hei. Jeg er interessert i ${b.name} (${b.year}) til kr ${parseInt(b.price).toLocaleString('en-US')}. Å lurer på om denne forsatt er tilgjengelig?
 
 Kan du fortelle litt mer om tilstand, bruk og vedlikehold? Jeg er også interessert i om det er noen kjente feil eller ting som bør utbedres.
 Gi gjerne beskjed om det er mulig å komme på visning, og om prisen er diskuterbar.
@@ -982,7 +931,7 @@ Gi gjerne beskjed om det er mulig å komme på visning, og om prisen er diskuter
 Mvh ${currentUser.name}</textarea>
     </div>
     <button class="btn-contact" onclick="sendEmailToSeller('${b.id}')">📧 Send email to seller</button>
-    <p style="font-size:.72rem;color:var(--off);margin-top:.5rem;text-align:center">Opens your email app with a ready-to-send message</p>
+    <p style="font-size:.72rem;color:var(--off);margin-top:.5rem;text-align:center">Opens your email app with a pre-filled message</p>
   `;}
   document.getElementById('detail-content').innerHTML=`
     <div class="detail-hero">${imgSection}<div class="detail-hero-overlay"></div>
@@ -992,8 +941,8 @@ Mvh ${currentUser.name}</textarea>
       <div>
         <div class="specs-grid">
           <div class="spec-box"><div class="spec-label">Year</div><div class="spec-val">${b.year}</div></div>
-          ${b.length?`<div class="spec-box"><div class="spec-label">Length</div><div class="spec-val">${b.length} ft</div></div>`:''}
-          ${b.hp?`<div class="spec-box"><div class="spec-label">HK</div><div class="spec-val">${b.hp} hp</div></div>`:''}
+          ${b.length?`<div class="spec-box"><div class="spec-label">Length</div><div class="spec-val">${b.length} fot</div></div>`:''}
+          ${b.hp?`<div class="spec-box"><div class="spec-label">HK</div><div class="spec-val">${b.hp} hk</div></div>`:''}
           ${b.hours?`<div class="spec-box"><div class="spec-label">Hours</div><div class="spec-val">${b.hours} t</div></div>`:''}
           <div class="spec-box"><div class="spec-label">Condition</div><div class="spec-val">${b.condition}</div></div>
           <div class="spec-box"><div class="spec-label">Location</div><div class="spec-val">${b.city}</div></div>
@@ -1032,13 +981,13 @@ async function saveEdit(){
       desc:document.getElementById('edit-desc').value,updatedAt:Date.now()
     });
     closeEditModal();toast('✅ Listing updated!');showPage('listings');
-  }catch(e){toast('Error: '+e.message);}
+  }catch(e){toast('Feil: '+e.message);}
 }
 async function deleteListing(id){
   if(!currentUser)return;
   if(!confirm('Are you sure? This cannot be undone.'))return;
   try{await window._fb.remove(window._fb.ref(window._db,'listings/'+id));toast('🗑️ Listing deleted');showPage('listings');}
-  catch(e){toast('Error: '+e.message);}
+  catch(e){toast('Feil: '+e.message);}
 }
 
 async function submitListing(){
@@ -1048,7 +997,7 @@ async function submitListing(){
   const city=document.getElementById('f-city').value.trim();
   if(!name||!price||!city){toast('⚠️ Please fill in boat name, price and location');return;}
   const btn=document.getElementById('submit-btn');
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Publishing...';
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Publiserer...';
   const flags={Norway:'🇳🇴',Sweden:'🇸🇪',Denmark:'🇩🇰',Finland:'🇫🇮'};
   const country=document.getElementById('f-country-sell').value;
   const prevs=document.querySelectorAll('#img-prev .img-preview');
@@ -1069,8 +1018,8 @@ async function submitListing(){
     ['f-name','f-year','f-length','f-price','f-engine','f-hours','f-hp','f-city','f-desc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
     document.getElementById('img-prev').innerHTML='';
     setTimeout(()=>showPage('listings'),1500);
-  }catch(e){toast('❌ Error: '+e.message);console.error(e);}
-  finally{btn.disabled=false;btn.textContent='🚤 Publiser listing – Gratis';}
+  }catch(e){toast('❌ Feil: '+e.message);console.error(e);}
+  finally{btn.disabled=false;btn.textContent='🚤 Publish listing – Free';}
 }
 
 function previewImgs(e){
@@ -1094,7 +1043,7 @@ function sendEmailToSeller(boatId) {
 
   const sellerEmail = boat.sellerEmail || '';
   if (!sellerEmail) {
-    toast('Seller has not registered an email. Please try again later.');
+    toast('Seller has not registered an email.');
     return;
   }
 
@@ -1114,7 +1063,7 @@ function renderConvs(){
   const badge=document.getElementById('unread-badge');
   const unread=convs.filter(c=>c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead).length;
   if(unread>0){badge.textContent=unread;badge.style.display='flex';}else{badge.style.display='none';}
-  if(!convs.length){el.innerHTML='<div class="conv-empty-msg">💬<br><br>No conversations yet</div>';renderChatEmpty();return;}
+  if(!convs.length){el.innerHTML='<div class="conv-empty-msg">💬<br><br>Ingen samtaler ennå</div>';renderChatEmpty();return;}
   el.innerHTML=convs.map((c,idx)=>{
     const other=c.buyerUid===currentUser.uid?c.sellerName:c.buyerName;
     const isUnread=c.lastSender&&c.lastSender!==currentUser.uid&&!c.lastRead;
@@ -1135,7 +1084,7 @@ function renderConvs(){
 }
 
 function renderChatEmpty(){
-  document.getElementById('chat-panel').innerHTML=`<div class="chat-empty-state"><div style="font-size:2.5rem;margin-bottom:.8rem">💬</div><p>Select a conversation</p></div>`;
+  document.getElementById('chat-panel').innerHTML=`<div class="chat-empty-state"><div style="font-size:2.5rem;margin-bottom:.8rem">💬</div><p>Velg en samtale</p></div>`;
 }
 
 function openConv(convId) {
@@ -1164,7 +1113,7 @@ function openConv(convId) {
       <div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem">Laster meldinger...</div>
     </div>
     <div class="chat-input-wrap">
-      <textarea class="chat-input" id="chat-input" placeholder="Write a message..."
+      <textarea class="chat-input" id="chat-input" placeholder="Skriv en melding..."
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('${convId}')}" rows="1"></textarea>
       <button class="chat-send" onclick="sendMsg('${convId}')">↑</button>
     </div>`;
@@ -1189,7 +1138,7 @@ function openConv(convId) {
 
     // Safety check: make sure Firebase is ready
     if (!window._fb || !window._db) {
-      msgEl.innerHTML = '<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Firebase not ready</div>';
+      msgEl.innerHTML = '<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Firebase ikke klar</div>';
       return;
     }
 
@@ -1210,13 +1159,13 @@ function openConv(convId) {
             const t = new Date(m.ts).toLocaleTimeString('en', {hour:'2-digit', minute:'2-digit'});
             return `<div class="msg-row ${mine ? 'mine' : 'theirs'}"><div class="bubble">${m.text}</div><div class="bubble-time">${t}</div></div>`;
           }).join('')
-        : '<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">No messages yet</div>';
+        : '<div style="text-align:center;color:var(--off);font-size:.8rem;padding:2rem;opacity:.5">Ingen meldinger ennå</div>';
 
       if (atBottom) el.scrollTop = el.scrollHeight;
 
     } catch(e) {
       const el = document.getElementById('chat-msgs');
-      if (el) el.innerHTML = `<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Error: ${e.message}</div>`;
+      if (el) el.innerHTML = `<div style="text-align:center;color:#ff6666;font-size:.8rem;padding:2rem">Feil: ${e.message}</div>`;
       console.error('fetchAndRender feil:', e);
     }
   }
@@ -1248,20 +1197,20 @@ function loadNews(){
   window._newsRef=window._fb.ref(window._db,'news');
   window._fb.onValue(window._newsRef,snap=>{
     if(!list)return;
-    if(!snap.exists()){list.innerHTML='<div style="text-align:center;color:var(--off);padding:3rem">No news yet.</div>';return;}
+    if(!snap.exists()){list.innerHTML='<div style="text-align:center;color:var(--off);padding:3rem">Ingen nyheter ennå.</div>';return;}
     const items=[];snap.forEach(c=>items.unshift({id:c.key,...c.val()}));
     list.innerHTML=items.map(n=>`
       <div class="news-item" id="newsitem-${n.id}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem">
           <div class="news-tag">${n.tag||'Nyhet'}</div>
           ${isAdmin()?`<div style="display:flex;gap:.4rem">
-            <button onclick="editNews('${n.id}')" style="background:none;border:1px solid var(--border);color:var(--off);padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">✏️ Edit</button>
-            <button onclick="deleteNews('${n.id}')" style="background:none;border:1px solid rgba(204,51,51,.3);color:#ff8888;padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">🗑️ Delete</button>
+            <button onclick="editNews('${n.id}')" style="background:none;border:1px solid var(--border);color:var(--off);padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">✏️ Rediger</button>
+            <button onclick="deleteNews('${n.id}')" style="background:none;border:1px solid rgba(204,51,51,.3);color:#ff8888;padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">🗑️ Slett</button>
           </div>`:''}
         </div>
         ${n.img?`<img src="${n.img}" alt="${n.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:6px;margin-bottom:.8rem">`:''}
         <div class="news-title">${n.title}</div>
-        <div class="news-date">${new Date(n.createdAt).toLocaleDateString('en',{day:'numeric',month:'long',year:'numeric'})}</div>
+        <div class="news-date">${new Date(n.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})}</div>
         <div class="news-body">${n.body}</div>
       </div>`).join('');
   });
@@ -1288,7 +1237,7 @@ async function publishNews(){
   const tag=document.getElementById('news-tag-inp').value;
   if(!title||!body){toast('Please fill in title and content');return;}
   const btn=document.getElementById('news-publish-btn');
-  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Publishing...';}
+  if(btn){btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Publiserer...';}
   try{
     const newRef=window._fb.push(window._fb.ref(window._db,'news'));
     await window._fb.set(newRef,{title,body,tag,img:_newsImgData||null,authorUid:currentUser.uid,authorName:currentUser.name,createdAt:Date.now()});
@@ -1299,7 +1248,7 @@ async function publishNews(){
     const label=document.getElementById('news-img-label');
     if(label)label.textContent='Click to upload photo';
     _newsImgData=null;toast('✅ News published!');
-  }catch(e){toast('❌ Error: '+e.message);console.error(e);}
+  }catch(e){toast('❌ Feil: '+e.message);console.error(e);}
   finally{if(btn){btn.disabled=false;btn.textContent='Publish news';}}
 }
 
@@ -1321,8 +1270,8 @@ async function editNews(id){
     <div class="f"><label>Innhold</label><textarea id="enews-body" style="width:100%;background:var(--dark3);border:1px solid var(--border);color:white;padding:.6rem .8rem;border-radius:3px;font-size:.88rem;min-height:100px;resize:vertical">${n.body||''}</textarea></div>
     ${n.img?`<img src="${n.img}" style="width:100%;max-height:150px;object-fit:cover;border-radius:4px">`:''}
     <div style="display:flex;gap:.5rem">
-      <button onclick="saveNewsEdit('${id}')" class="btn-hp" style="flex:1">💾 Save</button>
-      <button onclick="loadNews()" class="btn-ghost" style="flex:1">Cancel</button>
+      <button onclick="saveNewsEdit('${id}')" class="btn-hp" style="flex:1">💾 Lagre</button>
+      <button onclick="loadNews()" class="btn-ghost" style="flex:1">Avbryt</button>
     </div>
   </div>`;
 }
@@ -1346,7 +1295,7 @@ async function sendContact(){
   if(!window._fb||!window._db){toast('Error: Firebase not connected');return;}
   const r=window._fb.push(window._fb.ref(window._db,'contactMessages'));
   await window._fb.set(r,{name,email,subject,msg,ts:Date.now()});
-  toast('✅ Message sent! We will respond within 1-2 business days.');
+  toast('✅ Message sent! We respond within 1-2 business days.');
   ['ct-name','ct-email','ct-msg'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
 }
 
@@ -1367,5 +1316,52 @@ function toast(msg){
 window.addEventListener('scroll',()=>{document.getElementById('main-nav').classList.toggle('scrolled',window.scrollY>60);});
 </script>
 
+<!-- Firebase SDK — loaded LAST so page renders first -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+         signOut, onAuthStateChanged, updateProfile,
+         sendPasswordResetEmail, sendEmailVerification }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getDatabase, ref, push, set, get, onValue, off, query,
+         orderByChild, limitToLast, update, remove, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCTvWHRHOC_r003D2r2xVuM9fwMXkkAu_A",
+  authDomain:        "skivaro-33c88.firebaseapp.com",
+  projectId:         "skivaro-33c88",
+  storageBucket:     "skivaro-33c88.firebasestorage.app",
+  messagingSenderId: "451591105327",
+  appId:             "1:451591105327:web:5571d7857578a8aafd4fda",
+  databaseURL:       "https://skivaro-33c88-default-rtdb.europe-west1.firebasedatabase.app"
+};
+
+try {
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getDatabase(app);
+  window._auth = auth;
+  window._db   = db;
+  window._fb   = { ref, push, set, get, onValue, off, query, orderByChild,
+                    limitToLast, update, remove, serverTimestamp,
+                    createUserWithEmailAndPassword, signInWithEmailAndPassword,
+                    signOut, onAuthStateChanged, updateProfile,
+                    sendPasswordResetEmail, sendEmailVerification };
+  onAuthStateChanged(auth, user => {
+    window.currentUser = user
+      ? { uid: user.uid, name: user.displayName || user.email.split('@')[0],
+           email: user.email, emailVerified: user.emailVerified }
+      : null;
+    window._fbReady = true;
+    listenListings();
+    if (typeof window.onAuthReady === 'function') window.onAuthReady(window.currentUser);
+  });
+} catch(e) {
+  console.error('Firebase failed:', e);
+  window._fbReady = true; // hide loader even on error
+  document.getElementById('page-loader')?.remove();
+}
+</script>
 </body>
 </html>
