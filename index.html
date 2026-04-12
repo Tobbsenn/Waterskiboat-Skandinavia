@@ -349,7 +349,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
 
 <!-- EMAIL VERIFICATION BANNER -->
 <div id="verify-banner" class="verify-banner" style="display:none">
-  ⚠️ Emailen din er ikke bekreftet. Sjekk innboksen din eller spam.
+  ⚠️ Your mail is not confirmed, Check your inbox or spam.
   <button onclick="resendVerification()">Resend verification</button>
 </div>
 
@@ -392,7 +392,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
     <div class="hero-stats">
       <div><div class="h-stat-num" id="stat-count">0</div><div class="h-stat-label">Active listings</div></div>
       <div><div class="h-stat-num">4</div><div class="h-stat-label">Land</div></div>
-      <div><div class="h-stat-num">Gratis</div><div class="h-stat-label">To list</div></div>
+      <div><div class="h-stat-num">Free</div><div class="h-stat-label">To list</div></div>
     </div>
     <div class="scroll-hint"><span>↓</span> Scroll</div>
   </section>
@@ -478,7 +478,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   <div class="sell-header">
     <div class="section-label">Sell your boat</div>
     <h1>Create listing</h1>
-    <p>Nå kjøpere i Norway, Sweden, Denmark and Finland – gratis</p>
+    <p>Nå kjøpere i Norway, Sweden, Denmark and Finland – Free</p>
   </div>
   <div id="sell-locked" class="sell-wrap" style="display:none">
     <div style="border:1px solid var(--border);border-radius:6px;padding:3.5rem;text-align:center;background:var(--dark2)">
@@ -551,7 +551,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
   <div class="news-page">
     <div class="news-header">
       <div class="section-label">Latest news</div>
-      <div class="section-title">News &amp; <span>oppdateringer</span></div>
+      <div class="section-title">News &amp; <span>updates</span></div>
     </div>
     <div id="news-admin-panel" style="display:none">
       <div class="news-admin">
@@ -570,7 +570,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
         <button class="btn-hp" id="news-publish-btn" onclick="publishNews()" style="margin-top:.5rem">Publish news</button>
       </div>
     </div>
-    <div id="news-list"><div style="text-align:center;color:var(--off);padding:3rem">Laster nyheter...</div></div>
+    <div id="news-list"><div style="text-align:center;color:var(--off);padding:3rem">Loading news...</div></div>
   </div>
 </div>
 
@@ -584,7 +584,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
       <div class="f"><label>Your email</label><input type="email" id="ct-email" placeholder="your@email.com"></div>
       <div class="f"><label>Emne</label><select id="ct-subject"><option>General inquiry</option><option>Issue with listing</option><option>Report user</option><option>Technical issue</option><option>Other</option></select></div>
       <div class="f"><label>Melding</label><textarea id="ct-msg" placeholder="Describe your inquiry..." style="min-height:120px"></textarea></div>
-      <button class="btn-contact-submit" onclick="sendContact()">Send melding</button>
+      <button class="btn-contact-submit" onclick="sendContact()">Send message</button>
     </div>
   </div>
 </div>
@@ -604,7 +604,7 @@ footer{background:var(--dark);border-top:1px solid var(--border);padding:2.5rem}
       <div class="mf"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"></div>
       <span class="forgot-link" onclick="switchTab('reset')">Forgot password?</span>
       <button class="btn-modal" id="login-btn" onclick="doLogin()">Log in</button>
-      <div class="modal-note">Ikke bruker? <span onclick="switchTab('register')">Sign up gratis →</span></div>
+      <div class="modal-note">No account? <span onclick="switchTab('register')">Sign up for free →</span></div>
     </div>
     <div id="form-register" style="display:none">
       <h2>Get started</h2>
@@ -765,7 +765,7 @@ async function doRegister() {
     await window._fb.set(window._fb.ref(window._db,'users/'+cred.user.uid),{name,email,country:document.getElementById('r-country').value,createdAt:Date.now()});
     await window._fb.sendEmailVerification(cred.user);
     closeModal();
-    toast('✅ Welcome '+name+'! Sjekk e-posten din, ikke glem spam 📧');
+    toast('✅ Welcome '+name+'! Check yout e-mail, dont forget spam 📧');
   } catch(e) {
     showErr(err,e.code==='auth/email-already-in-use'?'Emailen er allerede i bruk':'Feil: '+e.message);
   } finally{btn.disabled=false;btn.textContent='Create free account';}
@@ -916,19 +916,20 @@ function showDetail(id){
       <div class="slide-dots">${imgs.map((_,i)=>`<div class="slide-dot ${i===0?'active':''}"></div>`).join('')}</div></div>`;
   }
   let contact;
-  if(!currentUser){contact=`<div class="lock-msg"><div class="lock-icon">🔒</div><p>Log in for å kontakte selger.</p><button class="btn-lock" onclick="openModal('login')">Log in</button><button class="btn-ghost" style="width:100%;padding:.65rem;margin-top:.5rem" onclick="openModal('register')">Sign up gratis</button></div>`;}
+  if(!currentUser){contact=`<div class="lock-msg"><div class="lock-icon">🔒</div><p>Log in to contact seller.</p><button class="btn-lock" onclick="openModal('login')">Log in</button><button class="btn-ghost" style="width:100%;padding:.65rem;margin-top:.5rem" onclick="openModal('register')">Sign up gratis</button></div>`;}
   else if(currentUser.uid===b.sellerUid){contact=`<div style="padding:1rem;background:var(--dark3);border-radius:4px;border:1px solid var(--border);text-align:center;color:var(--off);font-size:.85rem;margin-bottom:.8rem">This is your listing</div>
-    <div class="listing-actions"><button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Rediger</button><button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Slett</button></div>`;}
+    <div class="listing-actions"><button class="btn-edit" onclick="openEdit('${b.id}')">✏️ Edit</button><button class="btn-del" onclick="deleteListing('${b.id}')">🗑️ Delete</button></div>`;}
   else{contact=`
     <div class="c-field"><label>Your message to the seller</label>
       <textarea id="contact-msg" style="min-height:110px">Hei!
 
-Hei. Jeg er interessert i ${b.name} (${b.year}) til kr ${parseInt(b.price).toLocaleString('en-US')}. Å lurer på om denne forsatt er tilgjengelig?
+Hello. I am interested in ${b.name} (${b.year}) for kr ${parseInt(b.price).toLocaleString('en-US')}. Wondering if this is still available??
 
-Kan du fortelle litt mer om tilstand, bruk og vedlikehold? Jeg er også interessert i om det er noen kjente feil eller ting som bør utbedres.
-Gi gjerne beskjed om det er mulig å komme på visning, og om prisen er diskuterbar.
+Can you tell me a little more about the condition, use and maintenance? I am also interested in whether there are any known errors or things that should be fixed.
+Please let me know if it is possible to come to a viewing, and if the price is negotiable.
 
-Mvh ${currentUser.name}</textarea>
+
+Best regards ${currentUser.name}</textarea>
     </div>
     <button class="btn-contact" onclick="sendEmailToSeller('${b.id}')">📧 Send email to seller</button>
     <p style="font-size:.72rem;color:var(--off);margin-top:.5rem;text-align:center">Opens your email app with a pre-filled message</p>
@@ -1204,8 +1205,8 @@ function loadNews(){
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.5rem">
           <div class="news-tag">${n.tag||'Nyhet'}</div>
           ${isAdmin()?`<div style="display:flex;gap:.4rem">
-            <button onclick="editNews('${n.id}')" style="background:none;border:1px solid var(--border);color:var(--off);padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">✏️ Rediger</button>
-            <button onclick="deleteNews('${n.id}')" style="background:none;border:1px solid rgba(204,51,51,.3);color:#ff8888;padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">🗑️ Slett</button>
+            <button onclick="editNews('${n.id}')" style="background:none;border:1px solid var(--border);color:var(--off);padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">✏️ Edit</button>
+            <button onclick="deleteNews('${n.id}')" style="background:none;border:1px solid rgba(204,51,51,.3);color:#ff8888;padding:.2rem .6rem;border-radius:3px;font-size:.72rem;cursor:pointer">🗑️ Delete</button>
           </div>`:''}
         </div>
         ${n.img?`<img src="${n.img}" alt="${n.title}" style="width:100%;max-height:300px;object-fit:cover;border-radius:6px;margin-bottom:.8rem">`:''}
